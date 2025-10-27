@@ -1,16 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Key, Send, Shield } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Settings = () => {
   const [paystackKey, setPaystackKey] = useState("");
   const [telegramToken, setTelegramToken] = useState("");
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate("/auth");
+      }
+    };
+
+    checkAuth();
+  }, [navigate]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -105,10 +120,10 @@ const Settings = () => {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Key className="w-5 h-5 text-primary" />
-                <CardTitle>Firebase Configuration</CardTitle>
+                <CardTitle>Authentication</CardTitle>
               </div>
               <CardDescription>
-                Firebase is already configured for authentication
+                Lovable Cloud authentication is active
               </CardDescription>
             </CardHeader>
             <CardContent>

@@ -1,21 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePaystackPayment } from "react-paystack";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 const PAYSTACK_PUBLIC_KEY = "pk_live_your_public_key_here"; // You'll need to add your public key
 
 const Subscribe = () => {
   const [loading, setLoading] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+      
+      setUserEmail(session.user.email || "");
+    };
+
+    checkAuth();
+  }, [navigate]);
+
   const config = {
     reference: new Date().getTime().toString(),
-    email: "user@example.com", // Get from Firebase auth
+    email: userEmail,
     amount: 2500000, // ₦25,000 in kobo
     publicKey: PAYSTACK_PUBLIC_KEY,
   };
