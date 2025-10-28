@@ -61,8 +61,9 @@ export const Dashboard = () => {
         <StreakMeter currentStreak={7} totalDays={30} xp={1250} />
       </div>
 
-      {/* Bento Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+      {/* Futuristic 3D Bento Grid - Inspired by reference */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
+        {/* Large feature card */}
         <BentoCard
           icon={TrendingUp}
           title="Portfolio Value"
@@ -70,7 +71,11 @@ export const Dashboard = () => {
           change="+12.5%"
           trend="up"
           delay={0.2}
+          gradient="orange"
+          size="large"
         />
+        
+        {/* XP card */}
         <BentoCard
           icon={Zap}
           title="Total XP"
@@ -78,7 +83,10 @@ export const Dashboard = () => {
           subtitle="Level 8 Trader"
           trend="neutral"
           delay={0.3}
+          gradient="blue"
         />
+        
+        {/* Coins card */}
         <BentoCard
           icon={Trophy}
           title="Coins Earned"
@@ -86,7 +94,10 @@ export const Dashboard = () => {
           subtitle="Top 15% this week"
           trend="up"
           delay={0.4}
+          gradient="purple"
         />
+        
+        {/* Missions card */}
         <BentoCard
           icon={Target}
           title="Missions Complete"
@@ -94,7 +105,10 @@ export const Dashboard = () => {
           subtitle="2 remaining"
           trend="neutral"
           delay={0.5}
+          gradient="pink"
         />
+        
+        {/* Streak card */}
         <BentoCard
           icon={Star}
           title="Streak Bonus"
@@ -102,7 +116,10 @@ export const Dashboard = () => {
           subtitle="7-day active"
           trend="up"
           delay={0.6}
+          gradient="green"
         />
+        
+        {/* Global rank - glass style */}
         <BentoCard
           icon={Users}
           title="Global Rank"

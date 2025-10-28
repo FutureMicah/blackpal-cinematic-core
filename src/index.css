@@ -8,11 +8,11 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Cosmic base colors */
+    /* The Black Universe - Core colors */
     --background: 240 20% 4%;
     --foreground: 0 0% 98%;
 
-    /* Card & surfaces - glassmorphic dark */
+    /* Card & surfaces - Ultra glassmorphic */
     --card: 240 15% 8%;
     --card-foreground: 0 0% 98%;
 
@@ -43,22 +43,37 @@ All colors MUST be HSL.
     --input: 240 15% 12%;
     --ring: 188 100% 50%;
 
-    --radius: 1rem;
+    --radius: 1.5rem;
 
     /* Premium accent colors */
     --gold: 45 100% 50%;
     --purple: 270 100% 60%;
+    --orange: 30 100% 55%;
+    --blue: 220 100% 60%;
     
-    /* Gradients */
+    /* Colorful gradients inspired by reference */
     --gradient-cyber: linear-gradient(135deg, hsl(188 100% 50%), hsl(330 100% 50%));
     --gradient-wealth: linear-gradient(135deg, hsl(45 100% 50%), hsl(30 100% 50%));
     --gradient-success: linear-gradient(135deg, hsl(150 100% 50%), hsl(188 100% 50%));
+    --gradient-orange: linear-gradient(135deg, hsl(30 100% 55%), hsl(45 100% 50%));
+    --gradient-blue: linear-gradient(135deg, hsl(220 100% 60%), hsl(188 100% 50%));
+    --gradient-purple: linear-gradient(135deg, hsl(270 100% 60%), hsl(330 100% 50%));
+    --gradient-pink: linear-gradient(135deg, hsl(330 100% 50%), hsl(350 100% 55%));
+    --gradient-green: linear-gradient(135deg, hsl(150 100% 50%), hsl(170 100% 50%));
+    
+    /* 3D depth shadows */
+    --shadow-sm: 0 2px 8px hsl(240 20% 0% / 0.3);
+    --shadow-md: 0 4px 16px hsl(240 20% 0% / 0.4);
+    --shadow-lg: 0 8px 32px hsl(240 20% 0% / 0.5);
+    --shadow-xl: 0 16px 64px hsl(240 20% 0% / 0.6);
     
     /* Glow effects */
     --glow-cyan: 0 0 20px hsl(188 100% 50% / 0.5);
     --glow-pink: 0 0 20px hsl(330 100% 50% / 0.5);
     --glow-gold: 0 0 20px hsl(45 100% 50% / 0.5);
     --glow-green: 0 0 20px hsl(150 100% 50% / 0.5);
+    --glow-purple: 0 0 20px hsl(270 100% 60% / 0.5);
+    --glow-orange: 0 0 20px hsl(30 100% 55% / 0.5);
   }
 }
 
@@ -120,11 +135,27 @@ All colors MUST be HSL.
     animation: particle-float 3s ease-in-out infinite;
   }
   
-  /* Glassmorphic effect */
+  /* Enhanced glassmorphic effects */
   .glass {
     background: hsl(var(--card) / 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid hsl(var(--border) / 0.3);
+  }
+  
+  .glass-strong {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(30px);
+    border: 1px solid hsl(var(--border) / 0.4);
+  }
+  
+  /* 3D card effect */
+  .card-3d {
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease;
+  }
+  
+  .card-3d:hover {
+    transform: translateY(-8px) rotateX(2deg);
   }
   
   /* Neon glow effects */
@@ -144,6 +175,35 @@ All colors MUST be HSL.
     box-shadow: var(--glow-green);
   }
   
+  .glow-purple {
+    box-shadow: var(--glow-purple);
+  }
+  
+  .glow-orange {
+    box-shadow: var(--glow-orange);
+  }
+  
+  /* Gradient backgrounds */
+  .bg-gradient-orange {
+    background: var(--gradient-orange);
+  }
+  
+  .bg-gradient-blue {
+    background: var(--gradient-blue);
+  }
+  
+  .bg-gradient-purple {
+    background: var(--gradient-purple);
+  }
+  
+  .bg-gradient-pink {
+    background: var(--gradient-pink);
+  }
+  
+  .bg-gradient-green {
+    background: var(--gradient-green);
+  }
+  
   /* Gradient text */
   .gradient-text-cyber {
     background: var(--gradient-cyber);
@@ -157,6 +217,20 @@ All colors MUST be HSL.
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+  
+  /* Floating 3D effect */
+  .float-3d {
+    animation: float-3d 4s ease-in-out infinite;
+  }
+  
+  /* Smooth depth shadow */
+  .shadow-depth {
+    box-shadow: var(--shadow-lg);
+  }
+  
+  .shadow-depth-xl {
+    box-shadow: var(--shadow-xl);
   }
 }
 
@@ -200,5 +274,14 @@ All colors MUST be HSL.
   50% {
     transform: translate(10px, -10px) rotate(180deg);
     opacity: 1;
+  }
+}
+
+@keyframes float-3d {
+  0%, 100% {
+    transform: translateY(0px) translateZ(0px);
+  }
+  50% {
+    transform: translateY(-15px) translateZ(10px);
   }
 }
