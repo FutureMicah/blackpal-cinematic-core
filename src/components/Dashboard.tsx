@@ -1,16 +1,14 @@
-import { TrendingUp, Zap, Trophy, Target, Star, Users, Settings, CreditCard } from "lucide-react";
+import { TrendingUp, Zap, Trophy, Target, Star, Users } from "lucide-react";
 import { BentoCard } from "./BentoCard";
 import { StreakMeter } from "./StreakMeter";
 import { MilestoneCard } from "./MilestoneCard";
 import { Leaderboard } from "./Leaderboard";
-import { Button } from "./ui/button";
-import { useNavigate } from "react-router-dom";
+import { FloatingNav } from "./FloatingNav";
 
 export const Dashboard = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="min-h-screen p-8 relative overflow-hidden">
+      <FloatingNav />
       {/* Animated background particles */}
       <div className="absolute inset-0 -z-10">
         {[...Array(30)].map((_, i) => (
@@ -28,7 +26,7 @@ export const Dashboard = () => {
       </div>
 
       {/* Header */}
-      <header className="mb-12 animate-slide-up flex justify-between items-start">
+      <header className="mb-12 animate-slide-up">
         <div>
           <h1 className="text-5xl font-bold mb-2 gradient-text-cyber">
             Command Center
@@ -36,23 +34,6 @@ export const Dashboard = () => {
           <p className="text-xl text-muted-foreground">
             Your portfolio. Your strategy. Your legacy.
           </p>
-        </div>
-        <div className="flex gap-3">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => navigate('/subscribe')}
-            className="glow-gold"
-          >
-            <CreditCard className="w-5 h-5" />
-          </Button>
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
         </div>
       </header>
 

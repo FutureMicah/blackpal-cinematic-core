@@ -8,6 +8,8 @@ import Auth from "./pages/Auth";
 import Subscribe from "./pages/Subscribe";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import BlackBoard from "./pages/BlackBoard";
+import BlackVault from "./pages/BlackVault";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +25,8 @@ const App = () => (
           <Route path="/subscribe" element={<Subscribe />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dashboard" element={<Index />} />
+          <Route path="/blackboard" element={<BlackBoard />} />
+          <Route path="/blackvault" element={<BlackVault />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
