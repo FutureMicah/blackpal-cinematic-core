@@ -173,7 +173,7 @@ const Auth = () => {
       </div>
 
       {/* Glass panel - glides in from below */}
-      <div className="glass-strong max-w-md w-full p-8 rounded-3xl animate-slide-up shadow-depth-xl border border-primary/20 relative overflow-hidden">
+      <div className="glass-strong max-w-md w-full mx-4 p-6 sm:p-8 rounded-3xl animate-slide-up shadow-depth-xl border border-primary/20 relative overflow-hidden">
         {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 pointer-events-none" />
         

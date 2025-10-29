@@ -8,7 +8,6 @@ interface BentoCardProps {
   change?: string;
   trend: "up" | "down" | "neutral";
   delay?: number;
-  gradient?: "orange" | "blue" | "purple" | "pink" | "green" | "cyber";
   size?: "normal" | "large";
 }
 
@@ -20,37 +19,30 @@ export const BentoCard = ({
   change,
   trend,
   delay = 0,
-  gradient,
   size = "normal",
 }: BentoCardProps) => {
-  const trendColor = trend === "up" ? "text-white" : trend === "down" ? "text-white" : "text-white/90";
-  
-  const gradientClass = gradient 
-    ? `bg-gradient-${gradient}` 
-    : "glass";
+  const trendColor = trend === "up" ? "text-green-500" : trend === "down" ? "text-red-500" : "text-foreground/90";
   
   const sizeClass = size === "large" ? "md:col-span-2" : "";
 
   return (
     <div
-      className={`group ${gradientClass} rounded-3xl p-6 hover:scale-[1.02] transition-all duration-500 cursor-pointer animate-scale-in shadow-depth hover:shadow-depth-xl relative overflow-hidden card-3d ${sizeClass}`}
+      className={`group glass-strong rounded-3xl p-6 hover:scale-[1.02] transition-all duration-500 cursor-pointer animate-scale-in shadow-depth hover:shadow-depth-xl relative overflow-hidden card-3d border border-primary/20 hover:border-primary/40 ${sizeClass}`}
       style={{ animationDelay: `${delay}s` }}
     >
-      {/* Subtle gradient overlay for depth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      {/* Subtle glow overlay on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       
       {/* Animated border glow */}
-      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        <div className="absolute inset-0 rounded-3xl border border-white/20" />
-      </div>
+      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 glow-cyan" />
 
       <div className="relative z-10">
         <div className="flex items-start justify-between mb-6">
-          <div className={`p-3 rounded-2xl ${gradient ? 'bg-white/20 backdrop-blur-sm' : 'bg-primary/10'} float-3d`}>
-            <Icon className={`w-7 h-7 ${gradient ? 'text-white' : 'text-primary'}`} />
+          <div className="p-3 rounded-2xl bg-primary/10 backdrop-blur-sm float-3d group-hover:bg-primary/20 transition-colors">
+            <Icon className="w-7 h-7 text-primary" />
           </div>
           {change && (
-            <div className={`flex items-center gap-1 ${trendColor} bg-white/10 backdrop-blur-sm px-3 py-1 rounded-full`}>
+            <div className={`flex items-center gap-1 ${trendColor} bg-background/50 backdrop-blur-sm px-3 py-1 rounded-full border border-primary/20`}>
               {trend === "up" ? (
                 <TrendingUp className="w-4 h-4" />
               ) : trend === "down" ? (
@@ -61,14 +53,14 @@ export const BentoCard = ({
           )}
         </div>
 
-        <h3 className={`text-sm font-medium mb-3 ${gradient ? 'text-white/80' : 'text-muted-foreground'}`}>
+        <h3 className="text-sm font-medium mb-3 text-muted-foreground">
           {title}
         </h3>
-        <p className={`text-4xl font-bold mb-2 ${gradient ? 'text-white' : 'text-foreground'}`}>
+        <p className="text-4xl font-bold mb-2 text-foreground gradient-text-cyber">
           {value}
         </p>
         {subtitle && (
-          <p className={`text-sm ${gradient ? 'text-white/70' : 'text-muted-foreground'}`}>
+          <p className="text-sm text-muted-foreground">
             {subtitle}
           </p>
         )}
@@ -78,7 +70,7 @@ export const BentoCard = ({
           {[...Array(8)].map((_, i) => (
             <div
               key={i}
-              className={`absolute w-1.5 h-1.5 ${gradient ? 'bg-white' : 'bg-primary'} rounded-full animate-particle blur-sm`}
+              className="absolute w-1.5 h-1.5 bg-primary rounded-full animate-particle blur-sm"
               style={{
                 left: `${Math.random() * 30}px`,
                 top: `${Math.random() * 30}px`,

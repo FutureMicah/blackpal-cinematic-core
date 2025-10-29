@@ -52,7 +52,6 @@ export const Dashboard = () => {
           change="+12.5%"
           trend="up"
           delay={0.2}
-          gradient="orange"
           size="large"
         />
         
@@ -64,7 +63,6 @@ export const Dashboard = () => {
           subtitle="Level 8 Trader"
           trend="neutral"
           delay={0.3}
-          gradient="blue"
         />
         
         {/* Coins card */}
@@ -75,7 +73,6 @@ export const Dashboard = () => {
           subtitle="Top 15% this week"
           trend="up"
           delay={0.4}
-          gradient="purple"
         />
         
         {/* Missions card */}
@@ -86,7 +83,6 @@ export const Dashboard = () => {
           subtitle="2 remaining"
           trend="neutral"
           delay={0.5}
-          gradient="pink"
         />
         
         {/* Streak card */}
@@ -97,7 +93,6 @@ export const Dashboard = () => {
           subtitle="7-day active"
           trend="up"
           delay={0.6}
-          gradient="green"
         />
         
         {/* Global rank - glass style */}
