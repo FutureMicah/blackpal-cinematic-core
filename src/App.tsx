@@ -10,6 +10,11 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import BlackBoard from "./pages/BlackBoard";
 import BlackVault from "./pages/BlackVault";
+import BlackVerse from "./pages/BlackVerse";
+import BlackPass from "./pages/BlackPass";
+import BlackForge from "./pages/BlackForge";
+import BlackCoin from "./pages/BlackCoin";
+import BlackNotify from "./pages/BlackNotify";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +32,11 @@ const App = () => (
           <Route path="/dashboard" element={<Index />} />
           <Route path="/blackboard" element={<BlackBoard />} />
           <Route path="/blackvault" element={<BlackVault />} />
+          <Route path="/blackverse" element={<BlackVerse />} />
+          <Route path="/blackpass" element={<BlackPass />} />
+          <Route path="/blackforge" element={<BlackForge />} />
+          <Route path="/blackcoin" element={<BlackCoin />} />
+          <Route path="/blacknotify" element={<BlackNotify />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

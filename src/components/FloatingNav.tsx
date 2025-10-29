@@ -24,7 +24,7 @@ const navItems = [
   { icon: Zap, label: "BlackForge", path: "/blackforge", color: "text-accent" },
   { icon: Coins, label: "BlackCoin", path: "/blackcoin", color: "text-secondary" },
   { icon: Settings, label: "BlackDesk", path: "/settings" },
-  { icon: Bell, label: "BlackNotify", path: "/notifications", color: "text-orange-400" },
+  { icon: Bell, label: "BlackNotify", path: "/blacknotify", color: "text-orange-400" },
 ];
 
 export const FloatingNav = () => {
