@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_ui_settings: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           created_at: string | null
@@ -43,6 +73,39 @@ export type Database = {
           order_index?: number | null
           thumbnail_url?: string | null
           title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      feature_flags: {
+        Row: {
+          cohort_filter: Json | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          key: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          cohort_filter?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          key: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          cohort_filter?: Json | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          key?: string
+          name?: string
           updated_at?: string | null
         }
         Relationships: []
@@ -138,42 +201,194 @@ export type Database = {
           },
         ]
       }
+      ncf_action_logs: {
+        Row: {
+          action_type: string
+          admin_user_id: string
+          can_undo: boolean | null
+          created_at: string | null
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          record_id: string | null
+          table_name: string | null
+        }
+        Insert: {
+          action_type: string
+          admin_user_id: string
+          can_undo?: boolean | null
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+        }
+        Update: {
+          action_type?: string
+          admin_user_id?: string
+          can_undo?: boolean | null
+          created_at?: string | null
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          record_id?: string | null
+          table_name?: string | null
+        }
+        Relationships: []
+      }
+      premium_plans: {
+        Row: {
+          billing_period: string
+          created_at: string | null
+          features: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          order_index: number | null
+          price_ngn: number
+          price_usd: number
+          updated_at: string | null
+        }
+        Insert: {
+          billing_period?: string
+          created_at?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          name: string
+          order_index?: number | null
+          price_ngn?: number
+          price_usd?: number
+          updated_at?: string | null
+        }
+        Update: {
+          billing_period?: string
+          created_at?: string | null
+          features?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          order_index?: number | null
+          price_ngn?: number
+          price_usd?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      premium_purchases: {
+        Row: {
+          amount_paid: number
+          created_at: string | null
+          currency: string
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          payment_method: string | null
+          payment_reference: string | null
+          plan_id: string
+          starts_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_paid: number
+          created_at?: string | null
+          currency: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_id: string
+          starts_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_paid?: number
+          created_at?: string | null
+          currency?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          plan_id?: string
+          starts_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "premium_purchases_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "premium_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          currency_preference: string | null
           current_streak: number | null
+          demo_balance: number | null
           email: string
           full_name: string | null
           id: string
+          is_demo_mode: boolean | null
+          is_premium: boolean | null
+          kyc_completed_at: string | null
+          kyc_status: string | null
           last_activity_date: string | null
           longest_streak: number | null
+          onboarding_completed: boolean | null
+          timezone: string | null
           total_xp: number | null
           updated_at: string | null
+          user_goal: string | null
         }
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          currency_preference?: string | null
           current_streak?: number | null
+          demo_balance?: number | null
           email: string
           full_name?: string | null
           id: string
+          is_demo_mode?: boolean | null
+          is_premium?: boolean | null
+          kyc_completed_at?: string | null
+          kyc_status?: string | null
           last_activity_date?: string | null
           longest_streak?: number | null
+          onboarding_completed?: boolean | null
+          timezone?: string | null
           total_xp?: number | null
           updated_at?: string | null
+          user_goal?: string | null
         }
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          currency_preference?: string | null
           current_streak?: number | null
+          demo_balance?: number | null
           email?: string
           full_name?: string | null
           id?: string
+          is_demo_mode?: boolean | null
+          is_premium?: boolean | null
+          kyc_completed_at?: string | null
+          kyc_status?: string | null
           last_activity_date?: string | null
           longest_streak?: number | null
+          onboarding_completed?: boolean | null
+          timezone?: string | null
           total_xp?: number | null
           updated_at?: string | null
+          user_goal?: string | null
         }
         Relationships: []
       }
@@ -262,6 +477,27 @@ export type Database = {
           },
         ]
       }
+      user_layouts: {
+        Row: {
+          id: string
+          layout_json: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          layout_json?: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          layout_json?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -280,6 +516,51 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      widgets: {
+        Row: {
+          category: string
+          created_at: string | null
+          data_endpoint: string | null
+          default_config: Json | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          is_premium: boolean | null
+          key: string
+          name: string
+          order_index: number | null
+          refresh_interval: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          data_endpoint?: string | null
+          default_config?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          key: string
+          name: string
+          order_index?: number | null
+          refresh_interval?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          data_endpoint?: string | null
+          default_config?: Json | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_premium?: boolean | null
+          key?: string
+          name?: string
+          order_index?: number | null
+          refresh_interval?: number | null
         }
         Relationships: []
       }
