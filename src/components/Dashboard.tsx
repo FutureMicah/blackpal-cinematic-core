@@ -7,7 +7,7 @@ import { FloatingNav } from "./FloatingNav";
 
 export const Dashboard = () => {
   return (
-    <div className="min-h-screen p-8 relative overflow-hidden">
+    <div className="min-h-screen p-8 pl-24 relative overflow-hidden">
       <FloatingNav />
       {/* Animated background particles */}
       <div className="absolute inset-0 -z-10">
