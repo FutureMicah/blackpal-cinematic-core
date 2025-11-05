@@ -27,7 +27,7 @@ export const Dashboard = () => {
 
       {/* Header */}
       <header className="mb-12 animate-slide-up">
-        <div className="max-w-2xl">
+        <div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 gradient-text-cyber">
             Command Center
           </h1>
