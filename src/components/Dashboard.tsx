@@ -27,11 +27,11 @@ export const Dashboard = () => {
 
       {/* Header */}
       <header className="mb-12 animate-slide-up">
-        <div>
-          <h1 className="text-5xl font-bold mb-2 gradient-text-cyber">
+        <div className="max-w-2xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 gradient-text-cyber">
             Command Center
           </h1>
-          <p className="text-xl text-muted-foreground">
+          <p className="text-base sm:text-lg md:text-xl text-muted-foreground">
             Your portfolio. Your strategy. Your legacy.
           </p>
         </div>

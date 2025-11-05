@@ -56,28 +56,28 @@ export const CinematicIntro = ({ onComplete }: CinematicIntroProps) => {
 
       {/* Logo reveal */}
       <div
-        className={`relative z-10 text-center transition-all duration-1000 ${
+        className={`relative z-10 text-center px-4 transition-all duration-1000 ${
           stage >= 1 ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
       >
         <div className="relative inline-block">
-          <h1 className="text-8xl font-bold mb-4 gradient-text-cyber animate-glow-pulse">
+          <h1 className="text-5xl sm:text-6xl md:text-8xl font-bold mb-4 gradient-text-cyber animate-glow-pulse">
             BlackPAL
           </h1>
           <div className="absolute -inset-4 bg-primary/20 blur-3xl -z-10 animate-pulse" />
-          <Sparkles className="absolute -top-8 -right-8 w-12 h-12 text-gold animate-spin" style={{ animationDuration: '3s' }} />
+          <Sparkles className="absolute -top-6 -right-6 sm:-top-8 sm:-right-8 w-8 h-8 sm:w-12 sm:h-12 text-gold animate-spin" style={{ animationDuration: '3s' }} />
         </div>
 
         {/* Tagline */}
         <div
-          className={`mt-8 transition-all duration-1000 delay-500 ${
+          className={`mt-8 max-w-md mx-auto transition-all duration-1000 delay-500 ${
             stage >= 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           }`}
         >
-          <p className="text-2xl font-light text-foreground/80 mb-2">
+          <p className="text-lg sm:text-xl md:text-2xl font-light text-foreground/80 mb-2">
             Your portfolio. Your strategy. Your ascent.
           </p>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-base sm:text-lg text-muted-foreground">
             Master the market. Command your legacy.
           </p>
         </div>
@@ -95,13 +95,13 @@ export const CinematicIntro = ({ onComplete }: CinematicIntroProps) => {
 
         {/* CTA */}
         <div
-          className={`mt-16 transition-all duration-1000 delay-1500 ${
+          className={`mt-12 sm:mt-16 max-w-sm mx-auto transition-all duration-1000 delay-1500 ${
             stage >= 4 ? "opacity-100 scale-100" : "opacity-0 scale-95"
           }`}
         >
           <button
             onClick={onComplete}
-            className="group relative px-12 py-4 text-lg font-semibold bg-primary text-primary-foreground rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl glow-cyan"
+            className="group relative w-full px-6 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-semibold bg-primary text-primary-foreground rounded-full overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-2xl glow-cyan"
           >
             <span className="relative z-10">Enter BlackPAL. Elevate your capital.</span>
             <div className="absolute inset-0 bg-gradient-to-r from-primary via-secondary to-primary animate-gradient-x opacity-0 group-hover:opacity-100 transition-opacity" />
