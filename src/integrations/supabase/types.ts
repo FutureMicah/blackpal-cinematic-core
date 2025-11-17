@@ -201,6 +201,48 @@ export type Database = {
           },
         ]
       }
+      missions: {
+        Row: {
+          coin_reward: number
+          created_at: string | null
+          description: string | null
+          est_minutes: number
+          id: string
+          is_active: boolean | null
+          mission_type: string
+          order_index: number | null
+          title: string
+          updated_at: string | null
+          xp_reward: number
+        }
+        Insert: {
+          coin_reward?: number
+          created_at?: string | null
+          description?: string | null
+          est_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          mission_type?: string
+          order_index?: number | null
+          title: string
+          updated_at?: string | null
+          xp_reward?: number
+        }
+        Update: {
+          coin_reward?: number
+          created_at?: string | null
+          description?: string | null
+          est_minutes?: number
+          id?: string
+          is_active?: boolean | null
+          mission_type?: string
+          order_index?: number | null
+          title?: string
+          updated_at?: string | null
+          xp_reward?: number
+        }
+        Relationships: []
+      }
       ncf_action_logs: {
         Row: {
           action_type: string
@@ -477,6 +519,110 @@ export type Database = {
           },
         ]
       }
+      tokens: {
+        Row: {
+          created_at: string | null
+          decimals: number | null
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          decimals?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          decimals?: number | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string | null
+          description: string | null
+          id: string
+          reference_id: string | null
+          status: string | null
+          token_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string | null
+          token_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          status?: string | null
+          token_id?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "tokens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_activities: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          metadata: Json | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_layouts: {
         Row: {
           id: string
@@ -498,6 +644,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_missions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          mission_id: string
+          progress_percent: number | null
+          snoozed_until: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mission_id: string
+          progress_percent?: number | null
+          snoozed_until?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mission_id?: string
+          progress_percent?: number | null
+          snoozed_until?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_missions_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -518,6 +705,41 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_wallets: {
+        Row: {
+          balance: number
+          id: string
+          locked_balance: number | null
+          token_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          locked_balance?: number | null
+          token_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          locked_balance?: number | null
+          token_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_wallets_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "tokens"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       widgets: {
         Row: {
@@ -609,12 +831,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      complete_mission: {
+        Args: { p_mission_id: string; p_user_id: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      update_wallet_balance: {
+        Args: {
+          p_amount: number
+          p_description?: string
+          p_token_symbol: string
+          p_transaction_type: string
+          p_user_id: string
+        }
+        Returns: Json
       }
     }
     Enums: {
