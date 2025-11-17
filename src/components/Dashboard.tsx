@@ -4,8 +4,40 @@ import { StreakMeter } from "./StreakMeter";
 import { MilestoneCard } from "./MilestoneCard";
 import { Leaderboard } from "./Leaderboard";
 import { FloatingNav } from "./FloatingNav";
+import { ResumeLessonCard } from "./blackboard/ResumeLessonCard";
+import { MissionCard } from "./blackboard/MissionCard";
+import { ProgressReactor } from "./blackboard/ProgressReactor";
+import { ActivityFeed } from "./blackboard/ActivityFeed";
+import { WalletSnapshot } from "./blackboard/WalletSnapshot";
+import { useBlackBoardData } from "@/hooks/useBlackBoardData";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Dashboard = () => {
+  const { missions, currentLesson, loading, refreshMissions } = useBlackBoardData();
+  const [userStats, setUserStats] = useState({ xp: 0, level: 1, xpToNext: 1000 });
+
+  useEffect(() => {
+    const loadUserStats = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('total_xp, current_streak')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        const level = Math.floor(profile.total_xp / 1000) + 1;
+        const xpToNext = level * 1000;
+        setUserStats({ xp: profile.total_xp, level, xpToNext });
+      }
+    };
+
+    loadUserStats();
+  }, []);
+
   return (
     <div className="min-h-screen p-8 pl-24 relative overflow-hidden">
       <FloatingNav />
@@ -39,8 +71,77 @@ export const Dashboard = () => {
 
       {/* Streak Meter - Prominent */}
       <div className="mb-12 animate-scale-in" style={{ animationDelay: '0.1s' }}>
-        <StreakMeter currentStreak={7} totalDays={30} xp={1250} />
+        <StreakMeter currentStreak={7} totalDays={30} xp={userStats.xp} />
       </div>
+
+      {/* BlackBoard Main Section */}
+      <section className="mb-12 space-y-8">
+        <h2 className="text-3xl font-bold gradient-text-cyber">BlackBoard</h2>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column: Resume Lesson & Missions */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Resume Lesson Card */}
+            {currentLesson && (
+              <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <ResumeLessonCard lesson={currentLesson} />
+              </div>
+            )}
+
+            {/* Today's Missions */}
+            <div className="animate-slide-up" style={{ animationDelay: '0.3s' }}>
+              <h3 className="text-xl font-bold mb-4">Today's Missions</h3>
+              <div className="space-y-3">
+                {loading ? (
+                  [...Array(3)].map((_, i) => (
+                    <div key={i} className="glass rounded-xl p-4 animate-pulse">
+                      <div className="h-5 bg-muted rounded w-3/4 mb-2" />
+                      <div className="h-4 bg-muted rounded w-1/2" />
+                    </div>
+                  ))
+                ) : (
+                  missions.slice(0, 5).map((mission, index) => (
+                    <div
+                      key={mission.id}
+                      style={{
+                        animation: 'slide-in-left 0.4s ease-out',
+                        animationDelay: `${index * 0.1}s`,
+                        animationFillMode: 'backwards',
+                      }}
+                    >
+                      <MissionCard mission={mission} onComplete={refreshMissions} />
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Reactor, Wallet, Activity */}
+          <div className="space-y-6">
+            {/* Progress Reactor */}
+            <div className="glass rounded-2xl p-8 animate-scale-in" style={{ animationDelay: '0.4s' }}>
+              <h3 className="text-xl font-bold mb-6 text-center">XP Reactor</h3>
+              <ProgressReactor 
+                xp={userStats.xp} 
+                xpToNext={userStats.xpToNext} 
+                level={userStats.level} 
+              />
+            </div>
+
+            {/* Wallet Snapshot */}
+            <div className="animate-slide-up" style={{ animationDelay: '0.5s' }}>
+              <WalletSnapshot />
+            </div>
+
+            {/* Activity Feed */}
+            <div className="glass rounded-2xl p-6 animate-slide-up" style={{ animationDelay: '0.6s' }}>
+              <h3 className="text-lg font-bold mb-4">Recent Activity</h3>
+              <ActivityFeed />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Futuristic 3D Bento Grid - Inspired by reference */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-12">
@@ -59,8 +160,8 @@ export const Dashboard = () => {
         <BentoCard
           icon={Zap}
           title="Total XP"
-          value="1,250"
-          subtitle="Level 8 Trader"
+          value={userStats.xp.toLocaleString()}
+          subtitle={`Level ${userStats.level} Trader`}
           trend="neutral"
           delay={0.3}
         />
@@ -79,8 +180,8 @@ export const Dashboard = () => {
         <BentoCard
           icon={Target}
           title="Missions Complete"
-          value="28/30"
-          subtitle="2 remaining"
+          value={`${missions.filter(m => m.status === 'completed').length}/${missions.length}`}
+          subtitle={`${missions.filter(m => m.status === 'pending').length} remaining`}
           trend="neutral"
           delay={0.5}
         />
