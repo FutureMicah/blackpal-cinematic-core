@@ -259,7 +259,22 @@ const Auth = () => {
             </Button>
           </form>
 
-          <div className="mt-8 text-center animate-slide-up" style={{ animationDelay: '0.5s' }}>
+          <div className="mt-6 text-center animate-slide-up border-t border-primary/10 pt-6" style={{ animationDelay: '0.4s' }}>
+            <p className="text-sm text-muted-foreground mb-3">
+              Want the full premium experience?
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate("/signup")}
+              className="w-full border-primary/30 hover:bg-primary/10"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              Premium Sign-Up (Investor & Student Paths)
+            </Button>
+          </div>
+
+          <div className="mt-6 text-center animate-slide-up" style={{ animationDelay: '0.5s' }}>
             <button
               type="button"
               onClick={() => setIsSignUp(!isSignUp)}
