@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Subscribe from "./pages/Subscribe";
 import SignUp from "./pages/SignUp";
+import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import BlackBoard from "./pages/BlackBoard";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/subscribe" element={<Subscribe />} />
+          <Route path="/transactions" element={<Transactions />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/dashboard" element={<Index />} />
           <Route path="/blackboard" element={<BlackBoard />} />
