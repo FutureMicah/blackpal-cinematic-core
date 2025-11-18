@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      country_pricing: {
+        Row: {
+          allowed_payment_methods: string[]
+          country_code: string
+          country_name: string
+          created_at: string | null
+          currency: string
+          id: string
+          investor_fee: number
+          region: string
+          student_fee: number
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_payment_methods: string[]
+          country_code: string
+          country_name: string
+          created_at?: string | null
+          currency: string
+          id?: string
+          investor_fee: number
+          region: string
+          student_fee: number
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_payment_methods?: string[]
+          country_code?: string
+          country_name?: string
+          created_at?: string | null
+          currency?: string
+          id?: string
+          investor_fee?: number
+          region?: string
+          student_fee?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           created_at: string | null
@@ -279,6 +318,98 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_methods: {
+        Row: {
+          available_regions: string[]
+          config: Json | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          method_type: string
+          name: string
+        }
+        Insert: {
+          available_regions: string[]
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          method_type: string
+          name: string
+        }
+        Update: {
+          available_regions?: string[]
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          method_type?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          completed_at: string | null
+          created_at: string | null
+          currency: string
+          id: string
+          metadata: Json | null
+          payment_method: string
+          payment_proof_verified: boolean | null
+          payment_reference: string | null
+          screenshot_url: string | null
+          status: string | null
+          transaction_type: string
+          updated_at: string | null
+          user_id: string
+          verification_notes: string | null
+        }
+        Insert: {
+          amount: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency: string
+          id?: string
+          metadata?: Json | null
+          payment_method: string
+          payment_proof_verified?: boolean | null
+          payment_reference?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          transaction_type: string
+          updated_at?: string | null
+          user_id: string
+          verification_notes?: string | null
+        }
+        Update: {
+          amount?: number
+          completed_at?: string | null
+          created_at?: string | null
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          payment_method?: string
+          payment_proof_verified?: boolean | null
+          payment_reference?: string | null
+          screenshot_url?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       premium_plans: {
         Row: {
           billing_period: string
@@ -370,11 +501,15 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_tier: string | null
           avatar_url: string | null
+          country_code: string | null
+          country_name: string | null
           created_at: string | null
           currency_preference: string | null
           current_streak: number | null
           demo_balance: number | null
+          detected_region: string | null
           email: string
           full_name: string | null
           id: string
@@ -385,17 +520,23 @@ export type Database = {
           last_activity_date: string | null
           longest_streak: number | null
           onboarding_completed: boolean | null
+          payment_verified: boolean | null
+          registration_payment_id: string | null
           timezone: string | null
           total_xp: number | null
           updated_at: string | null
           user_goal: string | null
         }
         Insert: {
+          account_tier?: string | null
           avatar_url?: string | null
+          country_code?: string | null
+          country_name?: string | null
           created_at?: string | null
           currency_preference?: string | null
           current_streak?: number | null
           demo_balance?: number | null
+          detected_region?: string | null
           email: string
           full_name?: string | null
           id: string
@@ -406,17 +547,23 @@ export type Database = {
           last_activity_date?: string | null
           longest_streak?: number | null
           onboarding_completed?: boolean | null
+          payment_verified?: boolean | null
+          registration_payment_id?: string | null
           timezone?: string | null
           total_xp?: number | null
           updated_at?: string | null
           user_goal?: string | null
         }
         Update: {
+          account_tier?: string | null
           avatar_url?: string | null
+          country_code?: string | null
+          country_name?: string | null
           created_at?: string | null
           currency_preference?: string | null
           current_streak?: number | null
           demo_balance?: number | null
+          detected_region?: string | null
           email?: string
           full_name?: string | null
           id?: string
@@ -427,12 +574,22 @@ export type Database = {
           last_activity_date?: string | null
           longest_streak?: number | null
           onboarding_completed?: boolean | null
+          payment_verified?: boolean | null
+          registration_payment_id?: string | null
           timezone?: string | null
           total_xp?: number | null
           updated_at?: string | null
           user_goal?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_registration_payment_id_fkey"
+            columns: ["registration_payment_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_attempts: {
         Row: {
@@ -785,6 +942,66 @@ export type Database = {
           refresh_interval?: number | null
         }
         Relationships: []
+      }
+      withdrawal_requests: {
+        Row: {
+          admin_notes: string | null
+          amount: number
+          created_at: string | null
+          currency: string
+          destination_address: string
+          id: string
+          processed_at: string | null
+          status: string | null
+          transaction_id: string | null
+          updated_at: string | null
+          user_id: string
+          withdrawal_method: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount: number
+          created_at?: string | null
+          currency: string
+          destination_address: string
+          id?: string
+          processed_at?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id: string
+          withdrawal_method: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount?: number
+          created_at?: string | null
+          currency?: string
+          destination_address?: string
+          id?: string
+          processed_at?: string | null
+          status?: string | null
+          transaction_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+          withdrawal_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "payment_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xp_transactions: {
         Row: {
