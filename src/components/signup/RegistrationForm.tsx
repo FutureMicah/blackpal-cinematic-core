@@ -137,6 +137,26 @@ export const RegistrationForm = ({ accountTier, onComplete }: RegistrationFormPr
 
         if (profileError) console.error('Profile update error:', profileError);
 
+        // Update country activity for heatmap
+        if (countryData) {
+          try {
+            await supabase.functions.invoke('update-country-activity', {
+              body: {
+                country_code: countryData.country_code,
+                country_name: countryData.country_name,
+                region: countryData.region,
+                xp_gained: 0,
+                milestone: {
+                  type: 'registration',
+                  description: `New ${accountTier} joined from ${countryData.country_name}`,
+                },
+              },
+            });
+          } catch (activityError) {
+            console.error('Country activity update error:', activityError);
+          }
+        }
+
         // Proceed to payment
         onComplete({
           userId: authData.user.id,
