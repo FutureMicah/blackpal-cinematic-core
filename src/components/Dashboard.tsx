@@ -9,6 +9,7 @@ import { MissionCard } from "./blackboard/MissionCard";
 import { ProgressReactor } from "./blackboard/ProgressReactor";
 import { ActivityFeed } from "./blackboard/ActivityFeed";
 import { WalletSnapshot } from "./blackboard/WalletSnapshot";
+import { CountryHeatmap } from "./CountryHeatmap";
 import { useBlackBoardData } from "@/hooks/useBlackBoardData";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -243,11 +244,16 @@ export const Dashboard = () => {
       </section>
 
       {/* Leaderboard */}
-      <section className="animate-slide-up" style={{ animationDelay: '1.1s' }}>
+      <section className="animate-slide-up mb-12" style={{ animationDelay: '1.1s' }}>
         <h2 className="text-3xl font-bold mb-6 gradient-text-cyber">
           Global Leaderboard
         </h2>
         <Leaderboard />
+      </section>
+
+      {/* Country Heatmap */}
+      <section className="animate-slide-up" style={{ animationDelay: '1.2s' }}>
+        <CountryHeatmap />
       </section>
     </div>
   );

@@ -44,6 +44,45 @@ export type Database = {
         }
         Relationships: []
       }
+      country_activity: {
+        Row: {
+          active_users: number | null
+          city: string | null
+          country_code: string
+          country_name: string
+          created_at: string | null
+          id: string
+          recent_milestones: Json | null
+          region: string | null
+          total_xp: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_users?: number | null
+          city?: string | null
+          country_code: string
+          country_name: string
+          created_at?: string | null
+          id?: string
+          recent_milestones?: Json | null
+          region?: string | null
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_users?: number | null
+          city?: string | null
+          country_code?: string
+          country_name?: string
+          created_at?: string | null
+          id?: string
+          recent_milestones?: Json | null
+          region?: string | null
+          total_xp?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       country_pricing: {
         Row: {
           allowed_payment_methods: string[]

@@ -4,6 +4,7 @@ import { RegistrationForm } from "@/components/signup/RegistrationForm";
 import { PaymentActivation } from "@/components/signup/PaymentActivation";
 import { useNavigate } from "react-router-dom";
 import { CinematicIntro } from "@/components/CinematicIntro";
+import { AchievementCinematic } from "@/components/AchievementCinematic";
 
 type SignUpStep = "intro" | "path" | "form" | "payment" | "complete";
 
@@ -62,19 +63,13 @@ export default function SignUp() {
 
   if (step === "complete") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center animate-fade-in">
-          <div className="mb-8">
-            <div className="w-24 h-24 mx-auto rounded-full bg-primary/10 flex items-center justify-center mb-6">
-              <div className="text-5xl">🎉</div>
-            </div>
-            <h1 className="text-4xl font-bold mb-4">Welcome to BlackPAL!</h1>
-            <p className="text-lg text-muted-foreground">
-              Your account is being verified. Redirecting to dashboard...
-            </p>
-          </div>
-        </div>
-      </div>
+      <AchievementCinematic
+        title="Welcome to BlackPAL!"
+        description="Your elite journey begins now. Prepare for transformation."
+        xpEarned={100}
+        coinsEarned={50}
+        onComplete={() => navigate("/")}
+      />
     );
   }
 

@@ -17,6 +17,7 @@ import BlackPass from "./pages/BlackPass";
 import BlackForge from "./pages/BlackForge";
 import BlackCoin from "./pages/BlackCoin";
 import BlackNotify from "./pages/BlackNotify";
+import { Dashboard } from "./components/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -26,8 +27,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/home" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/subscribe" element={<Subscribe />} />
