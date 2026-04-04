@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { ArrowUp, ArrowDown, AlertTriangle, Lightbulb, Shield, Zap } from "lucide-react";
+import { ArrowUp, ArrowDown, AlertTriangle, Lightbulb, Shield, Zap, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { BehaviorPanel, type BehaviorWarning } from "./BehaviorEngine";
 
 interface TradeEngineProps {
   symbol: string;
   btkBalance: number;
+  onTradeExecuted?: () => void;
+  behaviorWarnings?: BehaviorWarning[];
 }
 
-export const TradeEngine = ({ symbol, btkBalance }: TradeEngineProps) => {
+export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarnings = [] }: TradeEngineProps) => {
   const [tradeSize, setTradeSize] = useState("500");
   const [riskPercent, setRiskPercent] = useState(2);
   const [leverage, setLeverage] = useState([5]);
@@ -17,11 +22,73 @@ export const TradeEngine = ({ symbol, btkBalance }: TradeEngineProps) => {
   const [tpMode, setTpMode] = useState<"auto" | "manual">("auto");
   const [slValue, setSlValue] = useState("");
   const [tpValue, setTpValue] = useState("");
+  const [executing, setExecuting] = useState<"buy" | "sell" | null>(null);
 
   const tradeSizeNum = parseFloat(tradeSize) || 0;
   const riskAmount = (btkBalance * riskPercent) / 100;
   const isRiskHigh = riskPercent > 5;
   const isOversized = tradeSizeNum > btkBalance * 0.3;
+  const hasCriticalWarning = behaviorWarnings.some(w => w.severity === "critical");
+
+  const executeTrade = async (side: "buy" | "sell") => {
+    if (tradeSizeNum <= 0 || tradeSizeNum > btkBalance) {
+      toast.error("Invalid trade size");
+      return;
+    }
+    if (hasCriticalWarning) {
+      toast.error("Trading blocked — resolve critical warnings first");
+      return;
+    }
+
+    setExecuting(side);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error("Not authenticated"); return; }
+
+      // Deduct BTK from wallet
+      const { data: walletResult, error: walletErr } = await supabase.rpc("update_wallet_balance", {
+        p_user_id: session.user.id,
+        p_token_symbol: "BTK",
+        p_amount: -tradeSizeNum,
+        p_transaction_type: "trade_open",
+        p_description: `${side.toUpperCase()} ${symbol} — ${tradeSizeNum} BTK @ ${leverage[0]}x`,
+      });
+
+      if (walletErr) {
+        // If BTK token doesn't exist yet, create it and try again
+        if (walletErr.message?.includes("Token not found")) {
+          toast.error("BTK token not configured. Contact admin.");
+        } else {
+          toast.error(walletErr.message || "Trade failed");
+        }
+        return;
+      }
+
+      // Log activity
+      await supabase.from("user_activities").insert({
+        user_id: session.user.id,
+        activity_type: "trade_executed",
+        title: `${side.toUpperCase()} ${symbol}`,
+        description: `${tradeSizeNum} BTK @ ${leverage[0]}x leverage`,
+        metadata: {
+          symbol,
+          side,
+          size: tradeSizeNum,
+          leverage: leverage[0],
+          risk_percent: riskPercent,
+          sl_mode: slMode,
+          tp_mode: tpMode,
+        },
+      });
+
+      toast.success(`${side.toUpperCase()} ${symbol} — ${tradeSizeNum} BTK executed`);
+      onTradeExecuted?.();
+    } catch (err: any) {
+      toast.error(err.message || "Trade execution failed");
+    } finally {
+      setExecuting(null);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col bg-background/80 backdrop-blur-xl border-l border-border/30">
@@ -41,6 +108,9 @@ export const TradeEngine = ({ symbol, btkBalance }: TradeEngineProps) => {
 
       {/* Trade Form */}
       <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        {/* Behavior Warnings */}
+        <BehaviorPanel warnings={behaviorWarnings} />
+
         {/* Trade Size */}
         <div>
           <label className="text-[10px] font-semibold text-muted-foreground tracking-wider block mb-1.5">TRADE SIZE (BTK)</label>
@@ -164,19 +234,29 @@ export const TradeEngine = ({ symbol, btkBalance }: TradeEngineProps) => {
       {/* Action Buttons */}
       <div className="p-3 border-t border-border/20 space-y-2">
         <div className="grid grid-cols-2 gap-2">
-          <button className="flex items-center justify-center gap-1.5 h-10 rounded-xl bg-accent/90 hover:bg-accent text-accent-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--accent)/0.4)] active:scale-[0.97]">
-            <ArrowUp className="w-4 h-4" />
+          <button
+            onClick={() => executeTrade("buy")}
+            disabled={!!executing || hasCriticalWarning}
+            className={cn(
+              "flex items-center justify-center gap-1.5 h-10 rounded-xl bg-accent/90 hover:bg-accent text-accent-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--accent)/0.4)] active:scale-[0.97]",
+              (executing || hasCriticalWarning) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {executing === "buy" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUp className="w-4 h-4" />}
             BUY
           </button>
-          <button className="flex items-center justify-center gap-1.5 h-10 rounded-xl bg-destructive/90 hover:bg-destructive text-destructive-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--destructive)/0.4)] active:scale-[0.97]">
-            <ArrowDown className="w-4 h-4" />
+          <button
+            onClick={() => executeTrade("sell")}
+            disabled={!!executing || hasCriticalWarning}
+            className={cn(
+              "flex items-center justify-center gap-1.5 h-10 rounded-xl bg-destructive/90 hover:bg-destructive text-destructive-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--destructive)/0.4)] active:scale-[0.97]",
+              (executing || hasCriticalWarning) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            {executing === "sell" ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDown className="w-4 h-4" />}
             SELL
           </button>
         </div>
-        <button className="w-full flex items-center justify-center gap-1.5 h-8 rounded-lg bg-[hsl(var(--purple)/0.15)] hover:bg-[hsl(var(--purple)/0.25)] text-[hsl(var(--purple))] text-xs font-semibold transition-all border border-[hsl(var(--purple)/0.2)]">
-          <Zap className="w-3.5 h-3.5" />
-          AUTO SNIPER
-        </button>
       </div>
     </div>
   );
