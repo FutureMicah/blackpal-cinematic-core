@@ -17,7 +17,7 @@ import BlackPass from "./pages/BlackPass";
 import BlackForge from "./pages/BlackForge";
 import BlackCoin from "./pages/BlackCoin";
 import BlackNotify from "./pages/BlackNotify";
-import { Dashboard } from "./components/Dashboard";
+import BlackTerminal from "./pages/BlackTerminal";
 
 const queryClient = new QueryClient();
 
@@ -28,7 +28,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<BlackTerminal />} />
         <Route path="/home" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/signup" element={<SignUp />} />
@@ -43,6 +43,7 @@ const App = () => (
           <Route path="/blackforge" element={<BlackForge />} />
           <Route path="/blackcoin" element={<BlackCoin />} />
           <Route path="/blacknotify" element={<BlackNotify />} />
+          <Route path="/terminal" element={<BlackTerminal />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
