@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Star, TrendingUp, Flame, Droplets, BarChart3 } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Search, Star, TrendingUp, Flame, Droplets, BarChart3, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -10,16 +10,16 @@ interface Asset {
   change: number;
   icon: string;
   category: string;
-  favorite?: boolean;
+  volume?: string;
 }
 
 const ASSETS: Asset[] = [
-  { symbol: "BTC/USDT", name: "Bitcoin", price: "67,432.50", change: 2.34, icon: "🟡", category: "crypto" },
-  { symbol: "ETH/USDT", name: "Ethereum", price: "3,521.80", change: -0.87, icon: "🔵", category: "crypto" },
-  { symbol: "SOL/USDT", name: "Solana", price: "178.45", change: 5.12, icon: "🟣", category: "crypto" },
-  { symbol: "PEPE/USDT", name: "Pepe", price: "0.00001234", change: 12.5, icon: "🐸", category: "crypto" },
-  { symbol: "DOGE/USDT", name: "Dogecoin", price: "0.1542", change: -1.2, icon: "🐶", category: "crypto" },
-  { symbol: "XRP/USDT", name: "Ripple", price: "0.6234", change: 0.45, icon: "⚪", category: "crypto" },
+  { symbol: "BTC/USDT", name: "Bitcoin", price: "67,432.50", change: 2.34, icon: "🟡", category: "crypto", volume: "2.1B" },
+  { symbol: "ETH/USDT", name: "Ethereum", price: "3,521.80", change: -0.87, icon: "🔵", category: "crypto", volume: "980M" },
+  { symbol: "SOL/USDT", name: "Solana", price: "178.45", change: 5.12, icon: "🟣", category: "crypto", volume: "540M" },
+  { symbol: "PEPE/USDT", name: "Pepe", price: "0.00001234", change: 12.5, icon: "🐸", category: "crypto", volume: "320M" },
+  { symbol: "DOGE/USDT", name: "Dogecoin", price: "0.1542", change: -1.2, icon: "🐶", category: "crypto", volume: "210M" },
+  { symbol: "XRP/USDT", name: "Ripple", price: "0.6234", change: 0.45, icon: "⚪", category: "crypto", volume: "180M" },
   { symbol: "EUR/USD", name: "Euro/Dollar", price: "1.0876", change: 0.12, icon: "🇪🇺", category: "forex" },
   { symbol: "GBP/JPY", name: "Pound/Yen", price: "198.432", change: -0.34, icon: "🇬🇧", category: "forex" },
   { symbol: "USD/JPY", name: "Dollar/Yen", price: "154.230", change: 0.67, icon: "🇺🇸", category: "forex" },
@@ -32,10 +32,10 @@ const ASSETS: Asset[] = [
 
 const CATEGORIES = [
   { key: "all", label: "All", icon: BarChart3 },
-  { key: "crypto", label: "Crypto", icon: Flame },
-  { key: "forex", label: "Forex", icon: TrendingUp },
-  { key: "energy", label: "Commodities", icon: Droplets },
-  { key: "indices", label: "Indices", icon: BarChart3 },
+  { key: "crypto", label: "🔥 Crypto", icon: Flame },
+  { key: "forex", label: "💱 Forex", icon: TrendingUp },
+  { key: "energy", label: "⚡ Commodities", icon: Droplets },
+  { key: "indices", label: "📊 Indices", icon: BarChart3 },
 ];
 
 interface AssetMatrixProps {
@@ -47,12 +47,17 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["BTC/USDT", "ETH/USDT"]));
+  const [sortBy, setSortBy] = useState<"name" | "change">("name");
 
-  const filtered = ASSETS.filter(a => {
-    const matchSearch = a.symbol.toLowerCase().includes(search.toLowerCase()) || a.name.toLowerCase().includes(search.toLowerCase());
-    const matchCat = category === "all" || a.category === category;
-    return matchSearch && matchCat;
-  });
+  const filtered = useMemo(() => {
+    let list = ASSETS.filter(a => {
+      const matchSearch = a.symbol.toLowerCase().includes(search.toLowerCase()) || a.name.toLowerCase().includes(search.toLowerCase());
+      const matchCat = category === "all" || a.category === category;
+      return matchSearch && matchCat;
+    });
+    if (sortBy === "change") list = [...list].sort((a, b) => Math.abs(b.change) - Math.abs(a.change));
+    return list;
+  }, [search, category, sortBy]);
 
   const toggleFav = (symbol: string) => {
     setFavorites(prev => {
@@ -63,32 +68,41 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
   };
 
   return (
-    <div className="h-full flex flex-col bg-background/80 backdrop-blur-xl border-r border-border/30">
+    <div className="h-full flex flex-col bg-background/70 backdrop-blur-xl border-r border-border/20">
       {/* Header */}
-      <div className="p-3 border-b border-border/20">
-        <h2 className="text-xs font-bold tracking-[0.2em] text-muted-foreground mb-2">ASSET MATRIX</h2>
+      <div className="p-2.5 border-b border-border/15">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">ASSET MATRIX</h2>
+          <button
+            onClick={() => setSortBy(s => s === "name" ? "change" : "name")}
+            className="p-1 rounded hover:bg-muted/30 text-muted-foreground transition-colors"
+            title={`Sort by ${sortBy === "name" ? "volatility" : "name"}`}
+          >
+            <Filter className="w-3 h-3" />
+          </button>
+        </div>
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
           <Input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Search assets..."
-            className="pl-8 h-8 text-xs bg-muted/30 border-border/20 rounded-lg"
+            placeholder="Search..."
+            className="pl-7 h-7 text-[11px] bg-muted/20 border-border/15 rounded-lg focus:border-primary/30 focus:shadow-[0_0_8px_hsl(var(--primary)/0.1)]"
           />
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex gap-0.5 p-2 overflow-x-auto scrollbar-none">
+      <div className="flex gap-px p-1.5 overflow-x-auto scrollbar-none border-b border-border/10">
         {CATEGORIES.map(cat => (
           <button
             key={cat.key}
             onClick={() => setCategory(cat.key)}
             className={cn(
-              "px-2 py-1 text-[10px] font-medium rounded-md whitespace-nowrap transition-all",
+              "px-2 py-1 text-[9px] font-semibold rounded-md whitespace-nowrap transition-all",
               category === cat.key
-                ? "bg-primary/20 text-primary border border-primary/30"
-                : "text-muted-foreground hover:bg-muted/40"
+                ? "bg-primary/15 text-primary border border-primary/25 shadow-[0_0_6px_hsl(var(--primary)/0.1)]"
+                : "text-muted-foreground/70 hover:bg-muted/30 hover:text-muted-foreground"
             )}
           >
             {cat.label}
@@ -97,9 +111,9 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
       </div>
 
       {/* Favorites */}
-      {favorites.size > 0 && category === "all" && (
-        <div className="px-3 pb-1">
-          <p className="text-[10px] text-muted-foreground font-semibold tracking-wider mb-1">⭐ FAVORITES</p>
+      {favorites.size > 0 && category === "all" && !search && (
+        <div className="px-2 pt-2 pb-1">
+          <p className="text-[9px] text-muted-foreground/70 font-semibold tracking-wider mb-1 px-1">⭐ FAVORITES</p>
           {ASSETS.filter(a => favorites.has(a.symbol)).map(asset => (
             <AssetRow
               key={`fav-${asset.symbol}`}
@@ -110,12 +124,12 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
               onToggleFav={() => toggleFav(asset.symbol)}
             />
           ))}
-          <div className="border-b border-border/10 my-1" />
+          <div className="border-b border-border/10 my-1 mx-1" />
         </div>
       )}
 
       {/* Asset List */}
-      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-0.5">
+      <div className="flex-1 overflow-y-auto px-2 pb-2 space-y-px scrollbar-thin">
         {filtered.map(asset => (
           <AssetRow
             key={asset.symbol}
@@ -138,28 +152,28 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
   <button
     onClick={onSelect}
     className={cn(
-      "w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left transition-all group",
+      "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group",
       selected
-        ? "bg-primary/10 border border-primary/30 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
-        : "hover:bg-muted/30 border border-transparent"
+        ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
+        : "hover:bg-muted/20 border border-transparent"
     )}
   >
-    <span className="text-sm">{asset.icon}</span>
+    <span className="text-sm shrink-0">{asset.icon}</span>
     <div className="flex-1 min-w-0">
-      <p className="text-xs font-semibold truncate">{asset.symbol}</p>
-      <p className="text-[10px] text-muted-foreground truncate">{asset.name}</p>
+      <p className="text-[11px] font-semibold truncate leading-tight">{asset.symbol}</p>
+      <p className="text-[9px] text-muted-foreground/60 truncate">{asset.name}</p>
     </div>
-    <div className="text-right">
-      <p className="text-xs font-mono">{asset.price}</p>
-      <p className={cn("text-[10px] font-mono", asset.change >= 0 ? "text-accent" : "text-destructive")}>
+    <div className="text-right shrink-0">
+      <p className="text-[10px] font-mono leading-tight">{asset.price}</p>
+      <p className={cn("text-[9px] font-mono font-bold", asset.change >= 0 ? "text-accent" : "text-destructive")}>
         {asset.change >= 0 ? "+" : ""}{asset.change}%
       </p>
     </div>
     <button
       onClick={e => { e.stopPropagation(); onToggleFav(); }}
-      className="opacity-0 group-hover:opacity-100 transition-opacity"
+      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-0.5"
     >
-      <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground")} />
+      <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
     </button>
   </button>
 );
