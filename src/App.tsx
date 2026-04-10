@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import ResetPassword from "./pages/ResetPassword";
 import Auth from "./pages/Auth";
 import Subscribe from "./pages/Subscribe";
 import SignUp from "./pages/SignUp";
@@ -18,6 +19,7 @@ import BlackForge from "./pages/BlackForge";
 import BlackCoin from "./pages/BlackCoin";
 import BlackNotify from "./pages/BlackNotify";
 import BlackTerminal from "./pages/BlackTerminal";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +46,8 @@ const App = () => (
           <Route path="/blackcoin" element={<BlackCoin />} />
           <Route path="/blacknotify" element={<BlackNotify />} />
           <Route path="/terminal" element={<BlackTerminal />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/admin" element={<AdminPanel />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -7,11 +7,14 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/blackpal-logo.jpg";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Eye, EyeOff, Loader2 } from "lucide-react";
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -49,6 +52,26 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast({
+        title: "Reset Link Sent",
+        description: "Check your email for the password reset link.",
+      });
+      setForgotMode(false);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -60,39 +83,19 @@ const Auth = () => {
           password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              full_name: fullName,
-            }
-          }
+            data: { full_name: fullName },
+          },
         });
-
         if (error) throw error;
-
-        toast({
-          title: "Success",
-          description: "Account created! You can now sign in.",
-        });
+        toast({ title: "Success", description: "Account created! Check your email to verify." });
         setIsSignUp(false);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-
-        // Welcome message will be shown by onAuthStateChange
-        toast({
-          title: "Authentication Successful",
-          description: "Welcome back, Trader.",
-        });
+        toast({ title: "Authentication Successful", description: "Welcome back, Trader." });
       }
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
       setLoading(false);
     }
@@ -190,74 +193,121 @@ const Auth = () => {
             </div>
             
             <h1 className="text-4xl font-bold gradient-text-cyber mb-3">
-              {isSignUp ? "Join the Black Universe" : "Welcome Back"}
+              {forgotMode ? "Reset Access Code" : isSignUp ? "Join the Black Universe" : "Welcome Back"}
             </h1>
             <p className="text-muted-foreground text-center text-sm">
-              {isSignUp 
-                ? "Enter a world of precision, discipline, and prestige" 
-                : "The command center awaits your return"}
+              {forgotMode
+                ? "Enter your email to receive a reset link"
+                : isSignUp 
+                  ? "Enter a world of precision, discipline, and prestige" 
+                  : "The command center awaits your return"}
             </p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-5">
-            {isSignUp && (
-              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                <Label htmlFor="fullName" className="text-foreground/90">Trader Name</Label>
+          {forgotMode ? (
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
                 <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="trader@blackpal.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="h-12 bg-background/50 border-primary/30 focus:border-primary"
                 />
               </div>
-            )}
-
-            <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="trader@blackpal.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 bg-background/50 border-primary/30 focus:border-primary"
-              />
-            </div>
-
-            <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <Label htmlFor="password" className="text-foreground/90">Access Code</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your secure code"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="h-12 bg-background/50 border-primary/30 focus:border-primary"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90 transition-all duration-300 hover:scale-[1.02] glow-cyan animate-slide-up"
-              style={{ animationDelay: '0.4s' }}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {isSignUp ? "Initializing..." : "Authenticating..."}
-                </span>
-              ) : (
-                isSignUp ? "Enter BlackTrader Academy" : "Access Command Center"
+              <Button type="submit" disabled={resetLoading} className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90">
+                {resetLoading ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Sending...</span>
+                ) : "Send Reset Link"}
+              </Button>
+              <button type="button" onClick={() => setForgotMode(false)} className="w-full text-sm text-primary hover:text-primary/80 mt-2">
+                ← Back to Sign In
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAuth} className="space-y-5">
+              {isSignUp && (
+                <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                  <Label htmlFor="fullName" className="text-foreground/90">Trader Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className="h-12 bg-background/50 border-primary/30 focus:border-primary"
+                  />
+                </div>
               )}
-            </Button>
-          </form>
+
+              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="trader@blackpal.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12 bg-background/50 border-primary/30 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-foreground/90">Access Code</Label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => setForgotMode(true)}
+                      className="text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your secure code"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="h-12 pr-10 bg-background/50 border-primary/30 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90 transition-all duration-300 hover:scale-[1.02] glow-cyan animate-slide-up"
+                style={{ animationDelay: '0.4s' }}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {isSignUp ? "Initializing..." : "Authenticating..."}
+                  </span>
+                ) : (
+                  isSignUp ? "Enter BlackTrader Academy" : "Access Command Center"
+                )}
+              </Button>
+            </form>
+          )}
 
           <div className="mt-6 text-center animate-slide-up border-t border-primary/10 pt-6" style={{ animationDelay: '0.4s' }}>
             <p className="text-sm text-muted-foreground mb-3">
