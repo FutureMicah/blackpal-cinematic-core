@@ -12,10 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Users, Coins, BarChart3, Bot, Brain, MessageSquare, Activity, Shield,
-  AlertTriangle, Pause, Power, Loader2, Search, ChevronLeft, RefreshCw,
-  Ban, Eye, Settings, Zap, TrendingUp, ArrowLeft
+  AlertTriangle, Pause, Power, Loader2, Search, RefreshCw,
+  Ban, Eye, ArrowLeft
 } from "lucide-react";
+import { Icon3D, type Icon3DName } from "@/components/Icon3D";
 
 interface UserProfile {
   id: string;
@@ -152,7 +152,7 @@ const AdminPanel = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <Shield className="w-6 h-6 text-primary" />
+            <Icon3D name="shield" size={28} />
             <h1 className="text-lg font-bold">Admin Control Center</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -187,17 +187,17 @@ const AdminPanel = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-4 lg:grid-cols-8 gap-1 h-auto bg-card/50 p-1">
             {[
-              { value: "users", icon: Users, label: "Users" },
-              { value: "economy", icon: Coins, label: "BTK Economy" },
-              { value: "market", icon: TrendingUp, label: "Market" },
-              { value: "bot", icon: Bot, label: "Bot Control" },
-              { value: "decision", icon: Brain, label: "Decision" },
-              { value: "feedback", icon: MessageSquare, label: "Feedback" },
-              { value: "analytics", icon: Activity, label: "Analytics" },
-              { value: "roles", icon: Shield, label: "Roles" },
+              { value: "users", icon: "users" as Icon3DName, label: "Users" },
+              { value: "economy", icon: "wallet" as Icon3DName, label: "BTK Economy" },
+              { value: "market", icon: "chart" as Icon3DName, label: "Market" },
+              { value: "bot", icon: "bot" as Icon3DName, label: "Bot Control" },
+              { value: "decision", icon: "brain" as Icon3DName, label: "Decision" },
+              { value: "feedback", icon: "intel" as Icon3DName, label: "Feedback" },
+              { value: "analytics", icon: "trade" as Icon3DName, label: "Analytics" },
+              { value: "roles", icon: "shield" as Icon3DName, label: "Roles" },
             ].map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className="flex flex-col items-center gap-1 text-xs py-2 px-1">
-                <tab.icon className="w-4 h-4" />
+                <Icon3D name={tab.icon} size={20} />
                 <span className="hidden sm:inline">{tab.label}</span>
               </TabsTrigger>
             ))}
