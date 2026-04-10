@@ -193,12 +193,14 @@ const Auth = () => {
             </div>
             
             <h1 className="text-4xl font-bold gradient-text-cyber mb-3">
-              {isSignUp ? "Join the Black Universe" : "Welcome Back"}
+              {forgotMode ? "Reset Access Code" : isSignUp ? "Join the Black Universe" : "Welcome Back"}
             </h1>
             <p className="text-muted-foreground text-center text-sm">
-              {isSignUp 
-                ? "Enter a world of precision, discipline, and prestige" 
-                : "The command center awaits your return"}
+              {forgotMode
+                ? "Enter your email to receive a reset link"
+                : isSignUp 
+                  ? "Enter a world of precision, discipline, and prestige" 
+                  : "The command center awaits your return"}
             </p>
           </div>
 
