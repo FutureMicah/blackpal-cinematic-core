@@ -457,7 +457,7 @@ const AdminPanel = () => {
                 { label: "Avg Streak", value: Math.round(users.reduce((a, u) => a + (u.current_streak || 0), 0) / (users.length || 1)), icon: "chart" as Icon3DName },
               ].map((stat) => (
                 <Card key={stat.label} className="p-4 bg-card/50 backdrop-blur-sm text-center">
-                  <stat.icon className="w-5 h-5 mx-auto mb-2 text-primary" />
+                  <Icon3D name={stat.icon} size={24} className="mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </Card>
@@ -483,7 +483,7 @@ const AdminPanel = () => {
           {/* 8. ROLES & PERMISSIONS */}
           <TabsContent value="roles" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Role Hierarchy</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2"><Icon3D name="shield" size={18} /> Role Hierarchy</h3>
               <div className="space-y-3">
                 {[
                   { role: "👑 Super Admin", desc: "Full control over platform", color: "text-yellow-400" },
