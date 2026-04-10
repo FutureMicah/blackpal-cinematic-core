@@ -27,6 +27,7 @@ export const RegistrationForm = ({ accountTier, onComplete }: RegistrationFormPr
   const [loading, setLoading] = useState(false);
   const [detectingCountry, setDetectingCountry] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [countryData, setCountryData] = useState<CountryData | null>(null);
   const [passwordStrength, setPasswordStrength] = useState(0);
   
@@ -283,14 +284,23 @@ export const RegistrationForm = ({ accountTier, onComplete }: RegistrationFormPr
 
           <div>
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              required
-              value={formData.confirmPassword}
-              onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-              className="mt-1"
-            />
+            <div className="relative">
+              <Input
+                id="confirmPassword"
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                className="mt-1 pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           <div>
