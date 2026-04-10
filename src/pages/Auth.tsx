@@ -202,65 +202,110 @@ const Auth = () => {
             </p>
           </div>
 
-          <form onSubmit={handleAuth} className="space-y-5">
-            {isSignUp && (
-              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-                <Label htmlFor="fullName" className="text-foreground/90">Trader Name</Label>
+          {forgotMode ? (
+            <form onSubmit={handleForgotPassword} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
                 <Input
-                  id="fullName"
-                  type="text"
-                  placeholder="Enter your name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="trader@blackpal.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
                   className="h-12 bg-background/50 border-primary/30 focus:border-primary"
                 />
               </div>
-            )}
-
-            <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="trader@blackpal.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-12 bg-background/50 border-primary/30 focus:border-primary"
-              />
-            </div>
-
-            <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.3s' }}>
-              <Label htmlFor="password" className="text-foreground/90">Access Code</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your secure code"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="h-12 bg-background/50 border-primary/30 focus:border-primary"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90 transition-all duration-300 hover:scale-[1.02] glow-cyan animate-slide-up"
-              style={{ animationDelay: '0.4s' }}
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  {isSignUp ? "Initializing..." : "Authenticating..."}
-                </span>
-              ) : (
-                isSignUp ? "Enter BlackTrader Academy" : "Access Command Center"
+              <Button type="submit" disabled={resetLoading} className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90">
+                {resetLoading ? (
+                  <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Sending...</span>
+                ) : "Send Reset Link"}
+              </Button>
+              <button type="button" onClick={() => setForgotMode(false)} className="w-full text-sm text-primary hover:text-primary/80 mt-2">
+                ← Back to Sign In
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleAuth} className="space-y-5">
+              {isSignUp && (
+                <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+                  <Label htmlFor="fullName" className="text-foreground/90">Trader Name</Label>
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Enter your name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className="h-12 bg-background/50 border-primary/30 focus:border-primary"
+                  />
+                </div>
               )}
-            </Button>
-          </form>
+
+              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.2s' }}>
+                <Label htmlFor="email" className="text-foreground/90">Email Address</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="trader@blackpal.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="h-12 bg-background/50 border-primary/30 focus:border-primary"
+                />
+              </div>
+
+              <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.3s' }}>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-foreground/90">Access Code</Label>
+                  {!isSignUp && (
+                    <button
+                      type="button"
+                      onClick={() => setForgotMode(true)}
+                      className="text-xs text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your secure code"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="h-12 pr-10 bg-background/50 border-primary/30 focus:border-primary"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 text-lg font-semibold bg-gradient-cyber hover:opacity-90 transition-all duration-300 hover:scale-[1.02] glow-cyan animate-slide-up"
+                style={{ animationDelay: '0.4s' }}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    {isSignUp ? "Initializing..." : "Authenticating..."}
+                  </span>
+                ) : (
+                  isSignUp ? "Enter BlackTrader Academy" : "Access Command Center"
+                )}
+              </Button>
+            </form>
+          )}
 
           <div className="mt-6 text-center animate-slide-up border-t border-primary/10 pt-6" style={{ animationDelay: '0.4s' }}>
             <p className="text-sm text-muted-foreground mb-3">
