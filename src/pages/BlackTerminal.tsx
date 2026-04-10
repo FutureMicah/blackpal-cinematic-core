@@ -9,7 +9,8 @@ import { AutoSniper } from "@/components/terminal/AutoSniper";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { BarChart3, Zap, Activity, Layers, Crosshair, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Icon3D } from "@/components/Icon3D";
 
 const BlackTerminal = () => {
   const [selectedAsset, setSelectedAsset] = useState("BTC/USDT");
@@ -116,24 +117,24 @@ const BlackTerminal = () => {
         {/* Mobile Bottom Nav */}
         <div className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0 safe-area-bottom">
           {[
-            { key: "assets" as const, icon: Layers, label: "Assets" },
-            { key: "chart" as const, icon: BarChart3, label: "Chart" },
-            { key: "trade" as const, icon: Zap, label: "Trade" },
-            { key: "sniper" as const, icon: Crosshair, label: "Sniper" },
-            { key: "intel" as const, icon: Activity, label: "Intel" },
+            { key: "assets" as const, icon: "assets" as const, label: "Assets" },
+            { key: "chart" as const, icon: "chart" as const, label: "Chart" },
+            { key: "trade" as const, icon: "trade" as const, label: "Trade" },
+            { key: "sniper" as const, icon: "sniper" as const, label: "Sniper" },
+            { key: "intel" as const, icon: "intel" as const, label: "Intel" },
           ].map(t => (
             <button
               key={t.key}
               onClick={() => setMobilePanel(t.key)}
               className={cn(
-                "flex-1 flex flex-col items-center gap-0.5 py-2.5 transition-all relative",
-                mobilePanel === t.key ? "text-primary" : "text-muted-foreground/60"
+                "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all relative",
+                mobilePanel === t.key ? "text-primary" : "text-muted-foreground/60 opacity-50"
               )}
             >
               {mobilePanel === t.key && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
               )}
-              <t.icon className="w-4 h-4" />
+              <Icon3D name={t.icon} size={22} />
               <span className="text-[9px] font-medium">{t.label}</span>
             </button>
           ))}
@@ -163,7 +164,7 @@ const BlackTerminal = () => {
                 : "bg-muted/20 text-muted-foreground border border-border/15 hover:bg-muted/40"
             )}
           >
-            <Crosshair className="w-3.5 h-3.5" />
+            <Icon3D name="sniper" size={16} />
             SNIPER
           </button>
           <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-muted/15 border border-border/10">

@@ -12,10 +12,10 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Users, Coins, BarChart3, Bot, Brain, MessageSquare, Activity, Shield,
-  AlertTriangle, Pause, Power, Loader2, Search, ChevronLeft, RefreshCw,
-  Ban, Eye, Settings, Zap, TrendingUp, ArrowLeft
+  AlertTriangle, Pause, Power, Loader2, Search, RefreshCw,
+  Ban, Eye, ArrowLeft
 } from "lucide-react";
+import { Icon3D, type Icon3DName } from "@/components/Icon3D";
 
 interface UserProfile {
   id: string;
@@ -152,7 +152,7 @@ const AdminPanel = () => {
             <Button variant="ghost" size="icon" onClick={() => navigate("/")}>
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <Shield className="w-6 h-6 text-primary" />
+            <Icon3D name="shield" size={28} />
             <h1 className="text-lg font-bold">Admin Control Center</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -187,17 +187,17 @@ const AdminPanel = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid grid-cols-4 lg:grid-cols-8 gap-1 h-auto bg-card/50 p-1">
             {[
-              { value: "users", icon: Users, label: "Users" },
-              { value: "economy", icon: Coins, label: "BTK Economy" },
-              { value: "market", icon: TrendingUp, label: "Market" },
-              { value: "bot", icon: Bot, label: "Bot Control" },
-              { value: "decision", icon: Brain, label: "Decision" },
-              { value: "feedback", icon: MessageSquare, label: "Feedback" },
-              { value: "analytics", icon: Activity, label: "Analytics" },
-              { value: "roles", icon: Shield, label: "Roles" },
+              { value: "users", icon: "users" as Icon3DName, label: "Users" },
+              { value: "economy", icon: "wallet" as Icon3DName, label: "BTK Economy" },
+              { value: "market", icon: "chart" as Icon3DName, label: "Market" },
+              { value: "bot", icon: "bot" as Icon3DName, label: "Bot Control" },
+              { value: "decision", icon: "brain" as Icon3DName, label: "Decision" },
+              { value: "feedback", icon: "intel" as Icon3DName, label: "Feedback" },
+              { value: "analytics", icon: "trade" as Icon3DName, label: "Analytics" },
+              { value: "roles", icon: "shield" as Icon3DName, label: "Roles" },
             ].map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className="flex flex-col items-center gap-1 text-xs py-2 px-1">
-                <tab.icon className="w-4 h-4" />
+                <Icon3D name={tab.icon} size={20} />
                 <span className="hidden sm:inline">{tab.label}</span>
               </TabsTrigger>
             ))}
@@ -268,7 +268,7 @@ const AdminPanel = () => {
           <TabsContent value="economy" className="mt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-                <h3 className="font-semibold flex items-center gap-2"><Coins className="w-4 h-4 text-primary" /> Currency Controls</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="wallet" size={18} /> Currency Controls</h3>
                 <div className="space-y-3">
                   <div>
                     <Label className="text-xs">BTK Value (USD)</Label>
@@ -295,7 +295,7 @@ const AdminPanel = () => {
               </Card>
 
               <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-                <h3 className="font-semibold flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /> Economy Stats</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="trade" size={18} /> Economy Stats</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: "Total Users", value: users.length },
@@ -316,7 +316,7 @@ const AdminPanel = () => {
           {/* 3. MARKET CONTROL */}
           <TabsContent value="market" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Asset Management</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2"><Icon3D name="chart" size={18} /> Asset Management</h3>
               <p className="text-sm text-muted-foreground mb-4">Control which trading pairs are available on the platform.</p>
               <div className="space-y-3">
                 {[
@@ -343,7 +343,7 @@ const AdminPanel = () => {
           <TabsContent value="bot" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> Auto Sniper Settings</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="bot" size={18} /> Auto Sniper Settings</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">Bots Active</span>
                   <Switch checked={botsActive} onCheckedChange={setBotsActive} />
@@ -395,7 +395,7 @@ const AdminPanel = () => {
           {/* 5. DECISION ENGINE */}
           <TabsContent value="decision" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-              <h3 className="font-semibold flex items-center gap-2"><Brain className="w-4 h-4 text-primary" /> Risk & Validation Rules</h3>
+              <h3 className="font-semibold flex items-center gap-2"><Icon3D name="brain" size={18} /> Risk & Validation Rules</h3>
               <div className="space-y-4">
                 <div>
                   <Label className="text-xs">Max Risk Allowed (%)</Label>
@@ -425,7 +425,7 @@ const AdminPanel = () => {
           {/* 6. SMART FEEDBACK */}
           <TabsContent value="feedback" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-              <h3 className="font-semibold flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Feedback Messages</h3>
+              <h3 className="font-semibold flex items-center gap-2"><Icon3D name="intel" size={18} /> Feedback Messages</h3>
               <div className="space-y-3">
                 {[
                   { trigger: "3 consecutive losses", message: "You're overtrading. Take a break.", severity: "warning" },
@@ -451,13 +451,13 @@ const AdminPanel = () => {
           <TabsContent value="analytics" className="mt-4 space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Total Users", value: users.length, icon: Users },
-                { label: "Active Today", value: users.filter(u => u.current_streak && u.current_streak > 0).length, icon: Activity },
-                { label: "Premium Users", value: users.filter(u => u.is_premium).length, icon: Zap },
-                { label: "Avg Streak", value: Math.round(users.reduce((a, u) => a + (u.current_streak || 0), 0) / (users.length || 1)), icon: TrendingUp },
+                { label: "Total Users", value: users.length, icon: "users" as Icon3DName },
+                { label: "Active Today", value: users.filter(u => u.current_streak && u.current_streak > 0).length, icon: "intel" as Icon3DName },
+                { label: "Premium Users", value: users.filter(u => u.is_premium).length, icon: "trade" as Icon3DName },
+                { label: "Avg Streak", value: Math.round(users.reduce((a, u) => a + (u.current_streak || 0), 0) / (users.length || 1)), icon: "chart" as Icon3DName },
               ].map((stat) => (
                 <Card key={stat.label} className="p-4 bg-card/50 backdrop-blur-sm text-center">
-                  <stat.icon className="w-5 h-5 mx-auto mb-2 text-primary" />
+                  <Icon3D name={stat.icon} size={24} className="mx-auto mb-2" />
                   <p className="text-2xl font-bold">{stat.value}</p>
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                 </Card>
@@ -483,7 +483,7 @@ const AdminPanel = () => {
           {/* 8. ROLES & PERMISSIONS */}
           <TabsContent value="roles" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><Shield className="w-4 h-4 text-primary" /> Role Hierarchy</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2"><Icon3D name="shield" size={18} /> Role Hierarchy</h3>
               <div className="space-y-3">
                 {[
                   { role: "👑 Super Admin", desc: "Full control over platform", color: "text-yellow-400" },
