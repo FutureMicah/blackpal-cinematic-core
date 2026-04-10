@@ -268,7 +268,7 @@ const AdminPanel = () => {
           <TabsContent value="economy" className="mt-4 space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-                <h3 className="font-semibold flex items-center gap-2"><Coins className="w-4 h-4 text-primary" /> Currency Controls</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="wallet" size={18} /> Currency Controls</h3>
                 <div className="space-y-3">
                   <div>
                     <Label className="text-xs">BTK Value (USD)</Label>
@@ -295,7 +295,7 @@ const AdminPanel = () => {
               </Card>
 
               <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-                <h3 className="font-semibold flex items-center gap-2"><Zap className="w-4 h-4 text-primary" /> Economy Stats</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="trade" size={18} /> Economy Stats</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {[
                     { label: "Total Users", value: users.length },
@@ -316,7 +316,7 @@ const AdminPanel = () => {
           {/* 3. MARKET CONTROL */}
           <TabsContent value="market" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm">
-              <h3 className="font-semibold mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-primary" /> Asset Management</h3>
+              <h3 className="font-semibold mb-4 flex items-center gap-2"><Icon3D name="chart" size={18} /> Asset Management</h3>
               <p className="text-sm text-muted-foreground mb-4">Control which trading pairs are available on the platform.</p>
               <div className="space-y-3">
                 {[
@@ -343,7 +343,7 @@ const AdminPanel = () => {
           <TabsContent value="bot" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold flex items-center gap-2"><Bot className="w-4 h-4 text-primary" /> Auto Sniper Settings</h3>
+                <h3 className="font-semibold flex items-center gap-2"><Icon3D name="bot" size={18} /> Auto Sniper Settings</h3>
                 <div className="flex items-center gap-2">
                   <span className="text-xs text-muted-foreground">Bots Active</span>
                   <Switch checked={botsActive} onCheckedChange={setBotsActive} />
@@ -395,7 +395,7 @@ const AdminPanel = () => {
           {/* 5. DECISION ENGINE */}
           <TabsContent value="decision" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-              <h3 className="font-semibold flex items-center gap-2"><Brain className="w-4 h-4 text-primary" /> Risk & Validation Rules</h3>
+              <h3 className="font-semibold flex items-center gap-2"><Icon3D name="brain" size={18} /> Risk & Validation Rules</h3>
               <div className="space-y-4">
                 <div>
                   <Label className="text-xs">Max Risk Allowed (%)</Label>
@@ -425,7 +425,7 @@ const AdminPanel = () => {
           {/* 6. SMART FEEDBACK */}
           <TabsContent value="feedback" className="mt-4 space-y-4">
             <Card className="p-5 bg-card/50 backdrop-blur-sm space-y-4">
-              <h3 className="font-semibold flex items-center gap-2"><MessageSquare className="w-4 h-4 text-primary" /> Feedback Messages</h3>
+              <h3 className="font-semibold flex items-center gap-2"><Icon3D name="intel" size={18} /> Feedback Messages</h3>
               <div className="space-y-3">
                 {[
                   { trigger: "3 consecutive losses", message: "You're overtrading. Take a break.", severity: "warning" },
@@ -451,10 +451,10 @@ const AdminPanel = () => {
           <TabsContent value="analytics" className="mt-4 space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: "Total Users", value: users.length, icon: Users },
-                { label: "Active Today", value: users.filter(u => u.current_streak && u.current_streak > 0).length, icon: Activity },
-                { label: "Premium Users", value: users.filter(u => u.is_premium).length, icon: Zap },
-                { label: "Avg Streak", value: Math.round(users.reduce((a, u) => a + (u.current_streak || 0), 0) / (users.length || 1)), icon: TrendingUp },
+                { label: "Total Users", value: users.length, icon: "users" as Icon3DName },
+                { label: "Active Today", value: users.filter(u => u.current_streak && u.current_streak > 0).length, icon: "intel" as Icon3DName },
+                { label: "Premium Users", value: users.filter(u => u.is_premium).length, icon: "trade" as Icon3DName },
+                { label: "Avg Streak", value: Math.round(users.reduce((a, u) => a + (u.current_streak || 0), 0) / (users.length || 1)), icon: "chart" as Icon3DName },
               ].map((stat) => (
                 <Card key={stat.label} className="p-4 bg-card/50 backdrop-blur-sm text-center">
                   <stat.icon className="w-5 h-5 mx-auto mb-2 text-primary" />
