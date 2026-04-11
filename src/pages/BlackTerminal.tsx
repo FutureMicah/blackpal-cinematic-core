@@ -107,7 +107,7 @@ const BlackTerminal = () => {
           {mobilePanel === "assets" && (
             <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobilePanel("chart"); }} />
           )}
-          {mobilePanel === "chart" && <NeuralChart symbol={selectedAsset} />}
+          {mobilePanel === "chart" && <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>}
           {mobilePanel === "trade" && (
             <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
           )}
@@ -206,7 +206,7 @@ const BlackTerminal = () => {
         {/* Center: Chart + Intel */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <div className="flex-1 overflow-hidden">
-            <NeuralChart symbol={selectedAsset} />
+            <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>
           </div>
           <div className="h-44 lg:h-48 xl:h-56 shrink-0 overflow-hidden">
             <LiveIntelPanel />
