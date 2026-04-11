@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetMatrix } from "@/components/terminal/AssetMatrix";
 import { NeuralChart } from "@/components/terminal/NeuralChart";
+import { ChartErrorBoundary } from "@/components/terminal/ChartErrorBoundary";
 import { TradeEngine } from "@/components/terminal/TradeEngine";
 import { LiveIntelPanel } from "@/components/terminal/LiveIntelPanel";
 import { AutoSniper } from "@/components/terminal/AutoSniper";
