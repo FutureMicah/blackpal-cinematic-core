@@ -3,21 +3,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
 import ResetPassword from "./pages/ResetPassword";
 import Auth from "./pages/Auth";
-import Subscribe from "./pages/Subscribe";
 import SignUp from "./pages/SignUp";
-import Transactions from "./pages/Transactions";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
-import BlackBoard from "./pages/BlackBoard";
-import BlackVault from "./pages/BlackVault";
-import BlackVerse from "./pages/BlackVerse";
-import BlackPass from "./pages/BlackPass";
-import BlackForge from "./pages/BlackForge";
-import BlackCoin from "./pages/BlackCoin";
-import BlackNotify from "./pages/BlackNotify";
 import BlackTerminal from "./pages/BlackTerminal";
 import AdminPanel from "./pages/AdminPanel";
 
@@ -31,26 +21,13 @@ const App = () => (
       <BrowserRouter>
       <Routes>
         <Route path="/" element={<BlackTerminal />} />
-        <Route path="/home" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/subscribe" element={<Subscribe />} />
-          <Route path="/transactions" element={<Transactions />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/dashboard" element={<Index />} />
-          <Route path="/blackboard" element={<BlackBoard />} />
-          <Route path="/blackvault" element={<BlackVault />} />
-          <Route path="/blackverse" element={<BlackVerse />} />
-          <Route path="/blackpass" element={<BlackPass />} />
-          <Route path="/blackforge" element={<BlackForge />} />
-          <Route path="/blackcoin" element={<BlackCoin />} />
-          <Route path="/blacknotify" element={<BlackNotify />} />
-          <Route path="/terminal" element={<BlackTerminal />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/admin" element={<AdminPanel />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/admin" element={<AdminPanel />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

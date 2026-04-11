@@ -34,7 +34,7 @@ const Auth = () => {
         if (currentSession?.user && event === 'SIGNED_IN') {
           setShowWelcome(true);
           setTimeout(() => {
-            navigate("/dashboard");
+            navigate("/");
           }, 2500);
         }
       }
@@ -45,7 +45,7 @@ const Auth = () => {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       if (currentSession) {
-        navigate("/dashboard");
+        navigate("/");
       }
     });
 
