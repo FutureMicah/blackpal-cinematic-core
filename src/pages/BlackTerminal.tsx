@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetMatrix } from "@/components/terminal/AssetMatrix";
 import { NeuralChart } from "@/components/terminal/NeuralChart";
+import { ChartErrorBoundary } from "@/components/terminal/ChartErrorBoundary";
 import { TradeEngine } from "@/components/terminal/TradeEngine";
 import { LiveIntelPanel } from "@/components/terminal/LiveIntelPanel";
 import { AutoSniper } from "@/components/terminal/AutoSniper";
@@ -106,7 +107,7 @@ const BlackTerminal = () => {
           {mobilePanel === "assets" && (
             <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobilePanel("chart"); }} />
           )}
-          {mobilePanel === "chart" && <NeuralChart symbol={selectedAsset} />}
+          {mobilePanel === "chart" && <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>}
           {mobilePanel === "trade" && (
             <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
           )}
@@ -205,7 +206,7 @@ const BlackTerminal = () => {
         {/* Center: Chart + Intel */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           <div className="flex-1 overflow-hidden">
-            <NeuralChart symbol={selectedAsset} />
+            <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>
           </div>
           <div className="h-44 lg:h-48 xl:h-56 shrink-0 overflow-hidden">
             <LiveIntelPanel />
