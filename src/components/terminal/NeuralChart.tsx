@@ -15,49 +15,73 @@ const TV_SYMBOL_MAP: Record<string, string> = {
 
 export const NeuralChart = ({ symbol }: NeuralChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useRef<HTMLDivElement | null>(null);
   const [chartLoaded, setChartLoaded] = useState(false);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
     setChartLoaded(false);
-    containerRef.current.innerHTML = "";
+
+    // Remove previous widget wrapper if it exists
+    if (widgetRef.current && widgetRef.current.parentNode) {
+      widgetRef.current.parentNode.removeChild(widgetRef.current);
+    }
+
+    // Create an isolated wrapper that React won't reconcile
+    const wrapper = document.createElement("div");
+    wrapper.style.width = "100%";
+    wrapper.style.height = "100%";
+    widgetRef.current = wrapper;
+    container.appendChild(wrapper);
 
     const tvDiv = document.createElement("div");
-    tvDiv.id = "tv-chart-container";
+    tvDiv.id = `tv-chart-${Date.now()}`;
     tvDiv.style.width = "100%";
     tvDiv.style.height = "100%";
-    containerRef.current.appendChild(tvDiv);
+    wrapper.appendChild(tvDiv);
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/tv.js";
     script.async = true;
     script.onload = () => {
-      if (!containerRef.current) return;
-      // @ts-ignore
-      new TradingView.widget({
-        autosize: true,
-        symbol: TV_SYMBOL_MAP[symbol] || "BINANCE:BTCUSDT",
-        interval: "60",
-        timezone: "Etc/UTC",
-        theme: "dark",
-        style: "1",
-        locale: "en",
-        toolbar_bg: "#0a0a12",
-        enable_publishing: false,
-        hide_top_toolbar: false,
-        hide_legend: false,
-        save_image: false,
-        container_id: "tv-chart-container",
-        backgroundColor: "rgba(10, 10, 18, 1)",
-        gridColor: "rgba(40, 40, 60, 0.3)",
-        studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
-        loading_screen: { backgroundColor: "#0a0a12" },
-      });
-      setChartLoaded(true);
+      if (!containerRef.current || !widgetRef.current) return;
+      try {
+        // @ts-ignore
+        new TradingView.widget({
+          autosize: true,
+          symbol: TV_SYMBOL_MAP[symbol] || "BINANCE:BTCUSDT",
+          interval: "60",
+          timezone: "Etc/UTC",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          toolbar_bg: "#0a0a12",
+          enable_publishing: false,
+          hide_top_toolbar: false,
+          hide_legend: false,
+          save_image: false,
+          container_id: tvDiv.id,
+          backgroundColor: "rgba(10, 10, 18, 1)",
+          gridColor: "rgba(40, 40, 60, 0.3)",
+          studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
+          loading_screen: { backgroundColor: "#0a0a12" },
+        });
+        setChartLoaded(true);
+      } catch (e) {
+        console.warn("TradingView widget error:", e);
+      }
     };
-    containerRef.current.appendChild(script);
+    document.head.appendChild(script);
 
-    return () => { if (containerRef.current) containerRef.current.innerHTML = ""; };
+    return () => {
+      if (widgetRef.current && widgetRef.current.parentNode) {
+        try {
+          widgetRef.current.parentNode.removeChild(widgetRef.current);
+        } catch (e) { /* already removed */ }
+      }
+      widgetRef.current = null;
+    };
   }, [symbol]);
 
   const trend = symbol.includes("BTC") ? "UPTREND" : symbol.includes("EUR") ? "RANGING" : "DOWNTREND";
