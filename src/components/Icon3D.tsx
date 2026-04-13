@@ -8,6 +8,11 @@ import iconBrain from "@/assets/icons/icon-brain.png";
 import iconShield from "@/assets/icons/icon-shield.png";
 import iconBot from "@/assets/icons/icon-bot.png";
 import iconUsers from "@/assets/icons/icon-users.png";
+import iconJournal from "@/assets/icons/icon-journal.png";
+import iconQuicktrade from "@/assets/icons/icon-quicktrade.png";
+import iconHome from "@/assets/icons/icon-home.png";
+import iconCandlestick from "@/assets/icons/icon-candlestick.png";
+import iconAnalytics from "@/assets/icons/icon-analytics.png";
 
 const iconMap = {
   chart: iconChart,
@@ -20,6 +25,11 @@ const iconMap = {
   shield: iconShield,
   bot: iconBot,
   users: iconUsers,
+  journal: iconJournal,
+  quicktrade: iconQuicktrade,
+  home: iconHome,
+  candlestick: iconCandlestick,
+  analytics: iconAnalytics,
 } as const;
 
 export type Icon3DName = keyof typeof iconMap;
