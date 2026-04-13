@@ -9,6 +9,7 @@ import SignUp from "./pages/SignUp";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import BlackTerminal from "./pages/BlackTerminal";
+import ChartPage from "./pages/ChartPage";
 import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
       <BrowserRouter>
       <Routes>
         <Route path="/" element={<BlackTerminal />} />
+        <Route path="/chart" element={<ChartPage />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/settings" element={<Settings />} />
