@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { Activity, History, BarChart3, Bot, TrendingUp, TrendingDown, Clock, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Icon3D } from "@/components/Icon3D";
+import { Clock } from "lucide-react";
 
 const TABS = [
-  { key: "open", label: "Open Trades", icon: Activity },
-  { key: "history", label: "History", icon: History },
-  { key: "performance", label: "Performance", icon: BarChart3 },
-  { key: "signals", label: "Bot Signals", icon: Bot },
+  { key: "open", label: "Positions", iconName: "trade" as const },
+  { key: "history", label: "History", iconName: "journal" as const },
+  { key: "performance", label: "Performance", iconName: "analytics" as const },
+  { key: "signals", label: "Signals", iconName: "bot" as const },
 ] as const;
 
 type TabKey = typeof TABS[number]["key"];
@@ -33,7 +34,6 @@ export const LiveIntelPanel = () => {
 
   return (
     <div className="h-full flex flex-col bg-background/70 backdrop-blur-xl border-t border-border/20">
-      {/* Tabs + Stats */}
       <div className="flex items-center gap-1 px-2 pt-1.5 pb-1 overflow-x-auto scrollbar-none shrink-0">
         {TABS.map(t => (
           <button
@@ -46,7 +46,7 @@ export const LiveIntelPanel = () => {
                 : "text-muted-foreground/60 hover:bg-muted/20 hover:text-muted-foreground"
             )}
           >
-            <t.icon className="w-3 h-3" />
+            <Icon3D name={t.iconName} size={14} />
             <span className="hidden sm:inline">{t.label}</span>
           </button>
         ))}
@@ -58,7 +58,6 @@ export const LiveIntelPanel = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-auto px-2 pb-1.5 min-h-0">
         {tab === "open" && <OpenTrades />}
         {tab === "history" && <TradeHistory />}
@@ -116,18 +115,18 @@ const TradeHistory = () => (
 const Performance = () => (
   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-1">
     {[
-      { label: "Total Trades", value: "142", icon: Activity },
-      { label: "Win Rate", value: "68.3%", icon: Target, color: "text-accent" },
-      { label: "Avg R:R", value: "2.4:1", icon: TrendingUp, color: "text-primary" },
-      { label: "Best Trade", value: "+2,340", icon: TrendingUp, color: "text-accent" },
-      { label: "Worst Trade", value: "-890", icon: TrendingDown, color: "text-destructive" },
-      { label: "Total P/L", value: "+18,450", icon: BarChart3, color: "text-accent" },
-      { label: "Avg Hold", value: "3h 22m", icon: Clock },
-      { label: "Rank", value: "Sniper 🎯", icon: Target, color: "text-[hsl(var(--gold))]" },
+      { label: "Total Trades", value: "142", iconName: "trade" as const },
+      { label: "Win Rate", value: "68.3%", iconName: "analytics" as const, color: "text-accent" },
+      { label: "Avg R:R", value: "2.4:1", iconName: "chart" as const, color: "text-primary" },
+      { label: "Best Trade", value: "+2,340", iconName: "chart" as const, color: "text-accent" },
+      { label: "Worst Trade", value: "-890", iconName: "chart" as const, color: "text-destructive" },
+      { label: "Total P/L", value: "+18,450", iconName: "analytics" as const, color: "text-accent" },
+      { label: "Avg Hold", value: "3h 22m", iconName: "intel" as const },
+      { label: "Rank", value: "Sniper 🎯", iconName: "sniper" as const, color: "text-[hsl(var(--gold))]" },
     ].map(s => (
       <div key={s.label} className="p-2 rounded-lg bg-muted/10 border border-border/10">
         <div className="flex items-center gap-1 mb-0.5">
-          <s.icon className="w-3 h-3 text-muted-foreground/50" />
+          <Icon3D name={s.iconName} size={12} />
           <span className="text-[9px] text-muted-foreground/60">{s.label}</span>
         </div>
         <p className={cn("text-[11px] font-bold font-mono", s.color || "text-foreground")}>{s.value}</p>
@@ -142,9 +141,9 @@ const BotSignals = () => (
       <div key={s.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/10 border border-border/10 hover:border-primary/15 transition-all">
         <div className={cn(
           "w-7 h-7 rounded-md flex items-center justify-center shrink-0",
-          s.direction === "LONG" ? "bg-accent/10 text-accent" : "bg-destructive/10 text-destructive"
+          s.direction === "LONG" ? "bg-accent/10" : "bg-destructive/10"
         )}>
-          {s.direction === "LONG" ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+          <Icon3D name="chart" size={16} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">

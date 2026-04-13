@@ -2,24 +2,23 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { AssetMatrix } from "@/components/terminal/AssetMatrix";
-import { NeuralChart } from "@/components/terminal/NeuralChart";
-import { ChartErrorBoundary } from "@/components/terminal/ChartErrorBoundary";
 import { TradeEngine } from "@/components/terminal/TradeEngine";
 import { LiveIntelPanel } from "@/components/terminal/LiveIntelPanel";
 import { AutoSniper } from "@/components/terminal/AutoSniper";
+import { OneClickTrading } from "@/components/terminal/OneClickTrading";
+import { TradeJournal } from "@/components/terminal/TradeJournal";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Icon3D } from "@/components/Icon3D";
+
+type MobileTab = "trade" | "assets" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
   const [selectedAsset, setSelectedAsset] = useState("BTC/USDT");
   const [btkBalance, setBtkBalance] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [mobilePanel, setMobilePanel] = useState<"assets" | "chart" | "trade" | "intel" | "sniper">("chart");
-  const [showSniper, setShowSniper] = useState(false);
-  const [leftCollapsed, setLeftCollapsed] = useState(false);
+  const [mobileTab, setMobileTab] = useState<MobileTab>("trade");
   const [tradeHistory, setTradeHistory] = useState<TradeRecord[]>([]);
   const [behaviorWarnings, setBehaviorWarnings] = useState<BehaviorWarning[]>([]);
   const navigate = useNavigate();
@@ -79,17 +78,17 @@ const BlackTerminal = () => {
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <span className="text-xs text-muted-foreground tracking-[0.2em] uppercase">Initializing Black Terminal</span>
+          <span className="text-xs text-muted-foreground tracking-[0.2em] uppercase">Initializing</span>
         </div>
       </div>
     );
   }
 
-  // MOBILE
+  // ═══════════ MOBILE ═══════════
   if (isMobile) {
     return (
       <div className="h-[100dvh] flex flex-col bg-background overflow-hidden" style={{ cursor: "auto" }}>
-        {/* Mobile Header */}
+        {/* Header */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-background/95 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
@@ -102,49 +101,60 @@ const BlackTerminal = () => {
           </div>
         </div>
 
-        {/* Mobile Content */}
+        {/* Content */}
         <div className="flex-1 overflow-hidden">
-          {mobilePanel === "assets" && (
-            <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobilePanel("chart"); }} />
+          {mobileTab === "trade" && (
+            <div className="h-full overflow-y-auto">
+              <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
+              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+            </div>
           )}
-          {mobilePanel === "chart" && <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>}
-          {mobilePanel === "trade" && (
-            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+          {mobileTab === "assets" && (
+            <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobileTab("trade"); }} />
           )}
-          {mobilePanel === "intel" && <LiveIntelPanel />}
-          {mobilePanel === "sniper" && <AutoSniper symbol={selectedAsset} />}
+          {mobileTab === "journal" && <TradeJournal />}
+          {mobileTab === "sniper" && <AutoSniper symbol={selectedAsset} />}
+          {mobileTab === "intel" && <LiveIntelPanel />}
         </div>
 
-        {/* Mobile Bottom Nav */}
-        <div className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0 safe-area-bottom">
-          {[
-            { key: "assets" as const, icon: "assets" as const, label: "Assets" },
-            { key: "chart" as const, icon: "chart" as const, label: "Chart" },
-            { key: "trade" as const, icon: "trade" as const, label: "Trade" },
-            { key: "sniper" as const, icon: "sniper" as const, label: "Sniper" },
-            { key: "intel" as const, icon: "intel" as const, label: "Intel" },
-          ].map(t => (
+        {/* Bottom Nav */}
+        <div className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0">
+          {([
+            { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
+            { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
+            { key: "journal" as MobileTab, icon: "journal" as const, label: "Journal" },
+            { key: "sniper" as MobileTab, icon: "sniper" as const, label: "Sniper" },
+            { key: "intel" as MobileTab, icon: "intel" as const, label: "Intel" },
+          ]).map(t => (
             <button
               key={t.key}
-              onClick={() => setMobilePanel(t.key)}
+              onClick={() => setMobileTab(t.key)}
               className={cn(
                 "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all relative",
-                mobilePanel === t.key ? "text-primary" : "text-muted-foreground/60 opacity-50"
+                mobileTab === t.key ? "text-primary" : "text-muted-foreground/50"
               )}
             >
-              {mobilePanel === t.key && (
+              {mobileTab === t.key && (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
               )}
-              <Icon3D name={t.icon} size={22} />
+              <Icon3D name={t.icon} size={20} />
               <span className="text-[9px] font-medium">{t.label}</span>
             </button>
           ))}
         </div>
+
+        {/* Chart FAB */}
+        <button
+          onClick={() => navigate("/chart")}
+          className="fixed bottom-20 right-3 w-12 h-12 rounded-2xl bg-primary/90 hover:bg-primary shadow-[0_4px_20px_hsl(var(--primary)/0.4)] flex items-center justify-center transition-all active:scale-90 z-50"
+        >
+          <Icon3D name="candlestick" size={24} />
+        </button>
       </div>
     );
   }
 
-  // DESKTOP
+  // ═══════════ DESKTOP ═══════════
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden" style={{ cursor: "auto" }}>
       {/* Top Bar */}
@@ -155,20 +165,16 @@ const BlackTerminal = () => {
           <div className="w-px h-4 bg-border/20" />
           <span className="text-xs text-muted-foreground font-mono">{selectedAsset}</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
-            onClick={() => setShowSniper(!showSniper)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-bold transition-all",
-              showSniper
-                ? "bg-[hsl(var(--purple)/0.15)] text-[hsl(var(--purple))] border border-[hsl(var(--purple)/0.3)] shadow-[0_0_12px_hsl(var(--purple)/0.15)]"
-                : "bg-muted/20 text-muted-foreground border border-border/15 hover:bg-muted/40"
-            )}
+            onClick={() => navigate("/chart")}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/20 hover:bg-muted/40 border border-border/15 text-[10px] font-bold text-muted-foreground transition-all"
           >
-            <Icon3D name="sniper" size={16} />
-            SNIPER
+            <Icon3D name="candlestick" size={16} />
+            CHART VIEW
           </button>
           <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-muted/15 border border-border/10">
+            <Icon3D name="wallet" size={14} />
             <span className="text-xs font-mono font-bold text-accent">{btkBalance.toLocaleString()}</span>
             <span className="text-[10px] text-primary font-bold">BTK</span>
           </div>
@@ -179,47 +185,30 @@ const BlackTerminal = () => {
         </div>
       </div>
 
-      {/* Main Grid */}
+      {/* Main Grid: 3 columns */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Asset Matrix */}
-        <div className={cn(
-          "shrink-0 overflow-hidden transition-all duration-300 relative",
-          leftCollapsed ? "w-0" : "w-52 lg:w-56 xl:w-64"
-        )}>
+        <div className="w-52 lg:w-56 xl:w-64 shrink-0 overflow-hidden border-r border-border/10">
           <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={setSelectedAsset} />
-          <button
-            onClick={() => setLeftCollapsed(!leftCollapsed)}
-            className="absolute top-1/2 -translate-y-1/2 -right-0 z-10 w-4 h-8 flex items-center justify-center bg-muted/40 hover:bg-muted/60 border border-border/20 rounded-r-md text-muted-foreground transition-all"
-          >
-            {leftCollapsed ? <ChevronRight className="w-3 h-3" /> : <ChevronLeft className="w-3 h-3" />}
-          </button>
         </div>
-        {leftCollapsed && (
-          <button
-            onClick={() => setLeftCollapsed(false)}
-            className="shrink-0 w-5 flex items-center justify-center bg-muted/10 hover:bg-muted/20 border-r border-border/15 text-muted-foreground transition-all"
-          >
-            <ChevronRight className="w-3 h-3" />
-          </button>
-        )}
 
-        {/* Center: Chart + Intel */}
+        {/* Center: Trade Engine + One-Click + Positions */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex-1 overflow-hidden">
-            <ChartErrorBoundary symbol={selectedAsset}><NeuralChart symbol={selectedAsset} /></ChartErrorBoundary>
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {/* One-click trading */}
+            <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
+            {/* Full trade engine */}
+            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
           </div>
-          <div className="h-44 lg:h-48 xl:h-56 shrink-0 overflow-hidden">
+          {/* Bottom: Positions / Intel */}
+          <div className="h-44 lg:h-48 xl:h-56 shrink-0 overflow-hidden border-t border-border/10">
             <LiveIntelPanel />
           </div>
         </div>
 
-        {/* Right: Trade Engine / Sniper */}
-        <div className="w-60 lg:w-64 xl:w-72 shrink-0 overflow-hidden">
-          {showSniper ? (
-            <AutoSniper symbol={selectedAsset} />
-          ) : (
-            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
-          )}
+        {/* Right: Journal + Sniper */}
+        <div className="w-72 lg:w-80 xl:w-88 shrink-0 overflow-hidden border-l border-border/10">
+          <TradeJournal />
         </div>
       </div>
     </div>
