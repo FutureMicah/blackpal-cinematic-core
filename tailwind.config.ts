@@ -49,6 +49,12 @@ export default {
         },
         gold: "hsl(var(--gold))",
         purple: "hsl(var(--purple))",
+        bid: "hsl(var(--bid))",
+        ask: "hsl(var(--ask))",
+        "surface-1": "hsl(var(--surface-1))",
+        "surface-2": "hsl(var(--surface-2))",
+        "surface-3": "hsl(var(--surface-3))",
+        hairline: "hsl(var(--hairline))",
       },
       borderRadius: {
         lg: "var(--radius)",
