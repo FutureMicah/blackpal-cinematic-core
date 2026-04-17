@@ -116,7 +116,7 @@ const BlackTerminal = () => {
           {mobileTab === "trade" && (
             <div className="h-full overflow-y-auto p-2 space-y-2">
               <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
-              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={prefillPrice} />
             </div>
           )}
           {mobileTab === "assets" && (
