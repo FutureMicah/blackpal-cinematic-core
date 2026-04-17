@@ -233,7 +233,7 @@ const BlackTerminal = () => {
             <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
           </div>
           <div className="flex-1 overflow-hidden panel-luxe">
-            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={prefillPrice} />
           </div>
         </div>
 
