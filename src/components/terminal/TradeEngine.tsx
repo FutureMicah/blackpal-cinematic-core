@@ -38,6 +38,15 @@ export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarni
   const [trailingPips, setTrailingPips] = useState("20");
   const [executing, setExecuting] = useState<"buy" | "sell" | null>(null);
 
+  // Autofill from order book click
+  useEffect(() => {
+    if (prefillPrice) {
+      setOrderType("limit");
+      setLimitPrice(prefillPrice);
+      toast.success(`Limit price set: ${prefillPrice}`, { duration: 1500 });
+    }
+  }, [prefillPrice]);
+
   const tradeSizeNum = mode === "crypto" ? (parseFloat(tradeSize) || 0) : (parseFloat(lotSize) || 0) * 1000;
   const riskAmount = (btkBalance * riskPercent) / 100;
   const isRiskHigh = riskPercent > 5;
