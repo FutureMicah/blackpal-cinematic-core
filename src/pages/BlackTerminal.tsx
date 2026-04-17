@@ -206,9 +206,19 @@ const BlackTerminal = () => {
           <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={setSelectedAsset} />
         </div>
 
-        {/* ZONE 2 — Order Book */}
-        <div className="w-56 lg:w-64 xl:w-72 shrink-0 overflow-hidden">
-          <OrderBook symbol={selectedAsset} />
+        {/* ZONE 2 — Mini Chart + Order Book stack */}
+        <div className="w-56 lg:w-64 xl:w-72 shrink-0 flex flex-col gap-2 overflow-hidden">
+          <div className="h-44 lg:h-52 xl:h-60 shrink-0">
+            <MiniChart symbol={selectedAsset} />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <OrderBook symbol={selectedAsset} />
+          </div>
+        </div>
+
+        {/* ZONE 2b — Time & Sales */}
+        <div className="w-44 lg:w-48 xl:w-56 shrink-0 overflow-hidden">
+          <TimeSales symbol={selectedAsset} />
         </div>
 
         {/* ZONE 3 — Trade Engine + Quick Trade */}
