@@ -218,7 +218,7 @@ const BlackTerminal = () => {
             <MiniChart symbol={selectedAsset} />
           </div>
           <div className="flex-1 overflow-hidden">
-            <OrderBook symbol={selectedAsset} />
+            <OrderBook symbol={selectedAsset} onPriceClick={handleOrderBookClick} />
           </div>
         </div>
 
