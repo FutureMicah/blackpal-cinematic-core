@@ -33,6 +33,8 @@ export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarni
   const [tpValue, setTpValue] = useState("");
   const [slPips, setSlPips] = useState("50");
   const [tpPips, setTpPips] = useState("100");
+  const [trailingEnabled, setTrailingEnabled] = useState(false);
+  const [trailingPips, setTrailingPips] = useState("20");
   const [executing, setExecuting] = useState<"buy" | "sell" | null>(null);
 
   const tradeSizeNum = mode === "crypto" ? (parseFloat(tradeSize) || 0) : (parseFloat(lotSize) || 0) * 1000;
@@ -93,6 +95,7 @@ export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarni
           sl_pips: mode === "mt5" ? slPips : undefined,
           tp_pips: mode === "mt5" ? tpPips : undefined,
           limit_price: orderType !== "market" ? limitPrice : undefined,
+          trailing_stop_pips: trailingEnabled ? parseFloat(trailingPips) : undefined,
         },
       });
 
@@ -319,6 +322,40 @@ export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarni
             <span className="text-[10px] font-mono font-bold text-[hsl(var(--gold))]">{leverage[0]}x</span>
           </div>
           <Slider value={leverage} onValueChange={setLeverage} min={1} max={mode === "mt5" ? 500 : 100} step={1} className="py-1" />
+        </div>
+
+        {/* Trailing Stop Loss */}
+        <div className="rounded-lg bg-[hsl(var(--gold)/0.05)] border border-[hsl(var(--gold)/0.15)] p-2.5">
+          <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center gap-1.5">
+              <Zap className="w-3 h-3 text-[hsl(var(--gold))]" />
+              <span className="text-[10px] font-bold tracking-wider text-[hsl(var(--gold))]">TRAILING STOP</span>
+            </div>
+            <button
+              onClick={() => setTrailingEnabled(!trailingEnabled)}
+              className={cn(
+                "w-8 h-4 rounded-full transition-all relative",
+                trailingEnabled ? "bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.5)]" : "bg-muted/40"
+              )}
+            >
+              <div className={cn(
+                "absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all",
+                trailingEnabled ? "left-[18px]" : "left-0.5"
+              )} />
+            </button>
+          </div>
+          {trailingEnabled && (
+            <div className="flex items-center gap-1.5">
+              <Input
+                type="number"
+                value={trailingPips}
+                onChange={e => setTrailingPips(e.target.value)}
+                className="h-7 text-xs font-mono bg-muted/20 border-border/20"
+                placeholder="Distance"
+              />
+              <span className="text-[9px] text-muted-foreground shrink-0 font-mono">{mode === "mt5" ? "pips" : "%"}</span>
+            </div>
+          )}
         </div>
 
         {/* Warnings */}

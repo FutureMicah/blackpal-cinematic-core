@@ -7,18 +7,22 @@ import { LiveIntelPanel } from "@/components/terminal/LiveIntelPanel";
 import { AutoSniper } from "@/components/terminal/AutoSniper";
 import { OneClickTrading } from "@/components/terminal/OneClickTrading";
 import { TradeJournal } from "@/components/terminal/TradeJournal";
+import { OrderBook } from "@/components/terminal/OrderBook";
+import { PositionsPanel } from "@/components/terminal/PositionsPanel";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
-type MobileTab = "trade" | "assets" | "journal" | "sniper" | "intel";
+type MobileTab = "trade" | "assets" | "book" | "positions" | "journal" | "intel";
+type DesktopTab = "positions" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
   const [selectedAsset, setSelectedAsset] = useState("BTC/USDT");
   const [btkBalance, setBtkBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("trade");
+  const [desktopTab, setDesktopTab] = useState<DesktopTab>("positions");
   const [tradeHistory, setTradeHistory] = useState<TradeRecord[]>([]);
   const [behaviorWarnings, setBehaviorWarnings] = useState<BehaviorWarning[]>([]);
   const navigate = useNavigate();
@@ -77,8 +81,8 @@ const BlackTerminal = () => {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-          <span className="text-xs text-muted-foreground tracking-[0.2em] uppercase">Initializing</span>
+          <div className="w-10 h-10 border-2 border-[hsl(var(--gold)/0.3)] border-t-[hsl(var(--gold))] rounded-full animate-spin" />
+          <span className="text-[10px] gold-shimmer tracking-[0.3em] uppercase font-bold">Initializing Terminal</span>
         </div>
       </div>
     );
@@ -88,23 +92,21 @@ const BlackTerminal = () => {
   if (isMobile) {
     return (
       <div className="h-[100dvh] flex flex-col bg-background overflow-hidden" style={{ cursor: "auto" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-background/95 backdrop-blur-md shrink-0">
+        <div className="flex items-center justify-between px-3 py-2 panel-luxe rounded-none border-b border-[hsl(var(--gold)/0.15)] shrink-0">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
-            <span className="text-[11px] font-bold tracking-[0.15em] text-primary">BLACK TERMINAL</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.8)] animate-pulse" />
+            <span className="text-[10px] font-black tracking-[0.2em] gold-shimmer">BLACK · TERMINAL</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">{selectedAsset}</span>
-            <div className="h-3 w-px bg-border/30" />
-            <span className="text-[10px] font-mono font-bold text-accent">{btkBalance.toLocaleString()} BTK</span>
+            <span className="text-[10px] text-muted-foreground font-mono">{selectedAsset}</span>
+            <div className="h-3 w-px bg-[hsl(var(--gold)/0.3)]" />
+            <span className="text-[10px] font-mono font-bold text-[hsl(var(--gold))] number-mono">{btkBalance.toLocaleString()}</span>
           </div>
         </div>
 
-        {/* Content */}
         <div className="flex-1 overflow-hidden">
           {mobileTab === "trade" && (
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto p-2 space-y-2">
               <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
               <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
             </div>
@@ -112,103 +114,139 @@ const BlackTerminal = () => {
           {mobileTab === "assets" && (
             <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobileTab("trade"); }} />
           )}
+          {mobileTab === "book" && <OrderBook symbol={selectedAsset} />}
+          {mobileTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
           {mobileTab === "journal" && <TradeJournal />}
-          {mobileTab === "sniper" && <AutoSniper symbol={selectedAsset} />}
           {mobileTab === "intel" && <LiveIntelPanel />}
         </div>
 
-        {/* Bottom Nav */}
-        <div className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0">
+        <div className="flex items-center panel-luxe rounded-none border-t border-[hsl(var(--gold)/0.15)] shrink-0">
           {([
             { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
             { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
+            { key: "book" as MobileTab, icon: "analytics" as const, label: "Book" },
+            { key: "positions" as MobileTab, icon: "wallet" as const, label: "Positions" },
             { key: "journal" as MobileTab, icon: "journal" as const, label: "Journal" },
-            { key: "sniper" as MobileTab, icon: "sniper" as const, label: "Sniper" },
-            { key: "intel" as MobileTab, icon: "intel" as const, label: "Intel" },
           ]).map(t => (
             <button
               key={t.key}
               onClick={() => setMobileTab(t.key)}
               className={cn(
                 "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all relative",
-                mobileTab === t.key ? "text-primary" : "text-muted-foreground/50"
+                mobileTab === t.key ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50"
               )}
             >
               {mobileTab === t.key && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)]" />
               )}
-              <Icon3D name={t.icon} size={20} />
+              <Icon3D name={t.icon} size={18} />
               <span className="text-[9px] font-medium">{t.label}</span>
             </button>
           ))}
         </div>
 
-        {/* Chart FAB */}
         <button
           onClick={() => navigate("/chart")}
-          className="fixed bottom-20 right-3 w-12 h-12 rounded-2xl bg-primary/90 hover:bg-primary shadow-[0_4px_20px_hsl(var(--primary)/0.4)] flex items-center justify-center transition-all active:scale-90 z-50"
+          className="fixed bottom-20 right-3 w-12 h-12 rounded-2xl panel-luxe-gold flex items-center justify-center transition-all active:scale-90 z-50"
         >
-          <Icon3D name="candlestick" size={24} />
+          <Icon3D name="candlestick" size={22} />
         </button>
       </div>
     );
   }
 
-  // ═══════════ DESKTOP ═══════════
+  // ═══════════ DESKTOP — 4-zone luxury workstation ═══════════
   return (
     <div className="h-screen flex flex-col bg-background overflow-hidden" style={{ cursor: "auto" }}>
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-4 py-1.5 border-b border-border/15 bg-muted/5 backdrop-blur-sm shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
-          <span className="text-sm font-bold tracking-[0.15em] text-primary">BLACK TERMINAL</span>
-          <div className="w-px h-4 bg-border/20" />
-          <span className="text-xs text-muted-foreground font-mono">{selectedAsset}</span>
+      {/* Top command bar */}
+      <div className="flex items-center justify-between px-4 py-2 panel-luxe-gold rounded-none border-b border-[hsl(var(--gold)/0.2)] shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_10px_hsl(var(--gold)/0.8)] animate-pulse" />
+            <span className="text-sm font-black tracking-[0.25em] gold-shimmer">BLACK · TERMINAL</span>
+          </div>
+          <div className="hairline-gold-v h-5" />
+          <div className="flex items-center gap-3">
+            <span className="text-[10px] tracking-widest text-muted-foreground/70">PAIR</span>
+            <span className="text-sm font-mono font-bold text-foreground number-mono">{selectedAsset}</span>
+          </div>
         </div>
+
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate("/chart")}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-muted/20 hover:bg-muted/40 border border-border/15 text-[10px] font-bold text-muted-foreground transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-[hsl(var(--gold)/0.2)] hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider text-[hsl(var(--gold))] transition-all"
           >
-            <Icon3D name="candlestick" size={16} />
+            <Icon3D name="candlestick" size={14} />
             CHART VIEW
           </button>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-muted/15 border border-border/10">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg panel-luxe border border-[hsl(var(--gold)/0.2)]">
             <Icon3D name="wallet" size={14} />
-            <span className="text-xs font-mono font-bold text-accent">{btkBalance.toLocaleString()}</span>
-            <span className="text-[10px] text-primary font-bold">BTK</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[8px] text-muted-foreground/60 tracking-wider">BALANCE</span>
+              <span className="text-xs font-mono font-bold gold-shimmer number-mono">{btkBalance.toLocaleString()} BTK</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_6px_hsl(var(--accent)/0.5)]" />
-            <span className="text-[10px] text-muted-foreground tracking-wider">LIVE</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-bid/10 border border-bid/20">
+            <div className="w-1.5 h-1.5 rounded-full bg-bid animate-pulse shadow-[0_0_6px_hsl(var(--bid)/0.8)]" />
+            <span className="text-[10px] text-bid tracking-wider font-bold">LIVE</span>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: 3 columns */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Asset Matrix */}
-        <div className="w-52 lg:w-56 xl:w-64 shrink-0 overflow-hidden border-r border-border/10">
+      {/* Workstation grid */}
+      <div className="flex-1 flex overflow-hidden gap-2 p-2 bg-surface-1">
+        {/* ZONE 1 — Asset Matrix */}
+        <div className="w-52 lg:w-56 xl:w-60 shrink-0 overflow-hidden panel-luxe">
           <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={setSelectedAsset} />
         </div>
 
-        {/* Center: Trade Engine + One-Click + Positions */}
-        <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-          <div className="flex-1 overflow-y-auto p-3 space-y-3">
-            {/* One-click trading */}
+        {/* ZONE 2 — Order Book */}
+        <div className="w-56 lg:w-64 xl:w-72 shrink-0 overflow-hidden">
+          <OrderBook symbol={selectedAsset} />
+        </div>
+
+        {/* ZONE 3 — Trade Engine + Quick Trade */}
+        <div className="flex-1 flex flex-col overflow-hidden min-w-0 gap-2">
+          <div className="shrink-0">
             <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
-            {/* Full trade engine */}
-            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
           </div>
-          {/* Bottom: Positions / Intel */}
-          <div className="h-44 lg:h-48 xl:h-56 shrink-0 overflow-hidden border-t border-border/10">
-            <LiveIntelPanel />
+          <div className="flex-1 overflow-hidden panel-luxe">
+            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
           </div>
         </div>
 
-        {/* Right: Journal + Sniper */}
-        <div className="w-72 lg:w-80 xl:w-88 shrink-0 overflow-hidden border-l border-border/10">
-          <TradeJournal />
+        {/* ZONE 4 — Tabbed: Positions / Journal / Sniper / Intel */}
+        <div className="w-72 lg:w-80 xl:w-96 shrink-0 flex flex-col overflow-hidden panel-luxe">
+          <div className="flex items-center border-b border-border/15 shrink-0">
+            {([
+              { key: "positions" as DesktopTab, icon: "trade" as const, label: "Positions" },
+              { key: "journal" as DesktopTab, icon: "journal" as const, label: "Journal" },
+              { key: "sniper" as DesktopTab, icon: "sniper" as const, label: "Sniper" },
+              { key: "intel" as DesktopTab, icon: "intel" as const, label: "Intel" },
+            ]).map(t => (
+              <button
+                key={t.key}
+                onClick={() => setDesktopTab(t.key)}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-2 text-[9px] font-bold tracking-[0.15em] transition-all relative",
+                  desktopTab === t.key ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                {desktopTab === t.key && (
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)]" />
+                )}
+                <Icon3D name={t.icon} size={12} />
+                {t.label.toUpperCase()}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 overflow-hidden">
+            {desktopTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
+            {desktopTab === "journal" && <TradeJournal />}
+            {desktopTab === "sniper" && <AutoSniper symbol={selectedAsset} />}
+            {desktopTab === "intel" && <LiveIntelPanel />}
+          </div>
         </div>
       </div>
     </div>
