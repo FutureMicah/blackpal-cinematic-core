@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUp, ArrowDown, AlertTriangle, Lightbulb, Shield, Zap, Loader2, BarChart3, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -12,6 +12,7 @@ interface TradeEngineProps {
   btkBalance: number;
   onTradeExecuted?: () => void;
   behaviorWarnings?: BehaviorWarning[];
+  prefillPrice?: string | null;
 }
 
 type PanelMode = "crypto" | "mt5";
@@ -19,7 +20,7 @@ type OrderType = "market" | "limit" | "stop";
 
 const LOT_PRESETS = [0.01, 0.05, 0.1, 0.5, 1.0, 5.0];
 
-export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarnings = [] }: TradeEngineProps) => {
+export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarnings = [], prefillPrice }: TradeEngineProps) => {
   const [mode, setMode] = useState<PanelMode>("crypto");
   const [tradeSize, setTradeSize] = useState("500");
   const [lotSize, setLotSize] = useState("0.10");
