@@ -9,6 +9,8 @@ import { OneClickTrading } from "@/components/terminal/OneClickTrading";
 import { TradeJournal } from "@/components/terminal/TradeJournal";
 import { OrderBook } from "@/components/terminal/OrderBook";
 import { PositionsPanel } from "@/components/terminal/PositionsPanel";
+import { MiniChart } from "@/components/terminal/MiniChart";
+import { TimeSales } from "@/components/terminal/TimeSales";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
