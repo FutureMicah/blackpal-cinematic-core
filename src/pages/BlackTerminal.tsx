@@ -16,7 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
-type MobileTab = "trade" | "assets" | "book" | "positions" | "journal" | "intel";
+type MobileTab = "trade" | "assets" | "chart" | "book" | "tape" | "positions" | "journal" | "intel";
 type DesktopTab = "positions" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
