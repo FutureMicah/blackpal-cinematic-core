@@ -32,10 +32,8 @@ const BlackTerminal = () => {
   const isMobile = useIsMobile();
 
   const handleOrderBookClick = (price: string) => {
-    // Use a unique value each time so the effect re-fires even with the same price
-    setPrefillPrice(`${price}#${Date.now()}`);
-    // Then immediately set the clean price (the effect deduped via the prefix)
-    setTimeout(() => setPrefillPrice(price), 0);
+    // Append timestamp so identical clicks still re-trigger autofill
+    setPrefillPrice(`${price}|${Date.now()}`);
   };
 
   const loadWallet = useCallback(async () => {
