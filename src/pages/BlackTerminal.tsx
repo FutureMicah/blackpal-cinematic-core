@@ -128,9 +128,10 @@ const BlackTerminal = () => {
           {([
             { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
             { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
+            { key: "chart" as MobileTab, icon: "candlestick" as const, label: "Chart" },
             { key: "book" as MobileTab, icon: "analytics" as const, label: "Book" },
+            { key: "tape" as MobileTab, icon: "trade" as const, label: "Tape" },
             { key: "positions" as MobileTab, icon: "wallet" as const, label: "Positions" },
-            { key: "journal" as MobileTab, icon: "journal" as const, label: "Journal" },
           ]).map(t => (
             <button
               key={t.key}
