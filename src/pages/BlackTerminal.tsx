@@ -27,8 +27,16 @@ const BlackTerminal = () => {
   const [desktopTab, setDesktopTab] = useState<DesktopTab>("positions");
   const [tradeHistory, setTradeHistory] = useState<TradeRecord[]>([]);
   const [behaviorWarnings, setBehaviorWarnings] = useState<BehaviorWarning[]>([]);
+  const [prefillPrice, setPrefillPrice] = useState<string | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const handleOrderBookClick = (price: string) => {
+    // Use a unique value each time so the effect re-fires even with the same price
+    setPrefillPrice(`${price}#${Date.now()}`);
+    // Then immediately set the clean price (the effect deduped via the prefix)
+    setTimeout(() => setPrefillPrice(price), 0);
+  };
 
   const loadWallet = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
