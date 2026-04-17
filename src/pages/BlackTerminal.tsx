@@ -116,7 +116,9 @@ const BlackTerminal = () => {
           {mobileTab === "assets" && (
             <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobileTab("trade"); }} />
           )}
+          {mobileTab === "chart" && <div className="h-full p-2"><MiniChart symbol={selectedAsset} /></div>}
           {mobileTab === "book" && <OrderBook symbol={selectedAsset} />}
+          {mobileTab === "tape" && <TimeSales symbol={selectedAsset} />}
           {mobileTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
           {mobileTab === "journal" && <TradeJournal />}
           {mobileTab === "intel" && <LiveIntelPanel />}
