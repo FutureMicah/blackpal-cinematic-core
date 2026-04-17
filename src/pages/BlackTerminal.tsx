@@ -9,12 +9,14 @@ import { OneClickTrading } from "@/components/terminal/OneClickTrading";
 import { TradeJournal } from "@/components/terminal/TradeJournal";
 import { OrderBook } from "@/components/terminal/OrderBook";
 import { PositionsPanel } from "@/components/terminal/PositionsPanel";
+import { MiniChart } from "@/components/terminal/MiniChart";
+import { TimeSales } from "@/components/terminal/TimeSales";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
-type MobileTab = "trade" | "assets" | "book" | "positions" | "journal" | "intel";
+type MobileTab = "trade" | "assets" | "chart" | "book" | "tape" | "positions" | "journal" | "intel";
 type DesktopTab = "positions" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
@@ -25,8 +27,14 @@ const BlackTerminal = () => {
   const [desktopTab, setDesktopTab] = useState<DesktopTab>("positions");
   const [tradeHistory, setTradeHistory] = useState<TradeRecord[]>([]);
   const [behaviorWarnings, setBehaviorWarnings] = useState<BehaviorWarning[]>([]);
+  const [prefillPrice, setPrefillPrice] = useState<string | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const handleOrderBookClick = (price: string) => {
+    // Append timestamp so identical clicks still re-trigger autofill
+    setPrefillPrice(`${price}|${Date.now()}`);
+  };
 
   const loadWallet = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -108,13 +116,15 @@ const BlackTerminal = () => {
           {mobileTab === "trade" && (
             <div className="h-full overflow-y-auto p-2 space-y-2">
               <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
-              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={prefillPrice} />
             </div>
           )}
           {mobileTab === "assets" && (
             <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobileTab("trade"); }} />
           )}
-          {mobileTab === "book" && <OrderBook symbol={selectedAsset} />}
+          {mobileTab === "chart" && <div className="h-full p-2"><MiniChart symbol={selectedAsset} /></div>}
+          {mobileTab === "book" && <OrderBook symbol={selectedAsset} onPriceClick={(p) => { handleOrderBookClick(p); setMobileTab("trade"); }} />}
+          {mobileTab === "tape" && <TimeSales symbol={selectedAsset} />}
           {mobileTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
           {mobileTab === "journal" && <TradeJournal />}
           {mobileTab === "intel" && <LiveIntelPanel />}
@@ -124,9 +134,10 @@ const BlackTerminal = () => {
           {([
             { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
             { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
+            { key: "chart" as MobileTab, icon: "candlestick" as const, label: "Chart" },
             { key: "book" as MobileTab, icon: "analytics" as const, label: "Book" },
+            { key: "tape" as MobileTab, icon: "trade" as const, label: "Tape" },
             { key: "positions" as MobileTab, icon: "wallet" as const, label: "Positions" },
-            { key: "journal" as MobileTab, icon: "journal" as const, label: "Journal" },
           ]).map(t => (
             <button
               key={t.key}
@@ -201,9 +212,19 @@ const BlackTerminal = () => {
           <AssetMatrix selectedAsset={selectedAsset} onSelectAsset={setSelectedAsset} />
         </div>
 
-        {/* ZONE 2 — Order Book */}
-        <div className="w-56 lg:w-64 xl:w-72 shrink-0 overflow-hidden">
-          <OrderBook symbol={selectedAsset} />
+        {/* ZONE 2 — Mini Chart + Order Book stack */}
+        <div className="w-56 lg:w-64 xl:w-72 shrink-0 flex flex-col gap-2 overflow-hidden">
+          <div className="h-44 lg:h-52 xl:h-60 shrink-0">
+            <MiniChart symbol={selectedAsset} />
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <OrderBook symbol={selectedAsset} onPriceClick={handleOrderBookClick} />
+          </div>
+        </div>
+
+        {/* ZONE 2b — Time & Sales */}
+        <div className="w-44 lg:w-48 xl:w-56 shrink-0 overflow-hidden">
+          <TimeSales symbol={selectedAsset} />
         </div>
 
         {/* ZONE 3 — Trade Engine + Quick Trade */}
@@ -212,7 +233,7 @@ const BlackTerminal = () => {
             <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
           </div>
           <div className="flex-1 overflow-hidden panel-luxe">
-            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} />
+            <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={prefillPrice} />
           </div>
         </div>
 
