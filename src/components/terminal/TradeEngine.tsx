@@ -41,9 +41,10 @@ export const TradeEngine = ({ symbol, btkBalance, onTradeExecuted, behaviorWarni
   // Autofill from order book click
   useEffect(() => {
     if (prefillPrice) {
+      const cleanPrice = prefillPrice.split("|")[0];
       setOrderType("limit");
-      setLimitPrice(prefillPrice);
-      toast.success(`Limit price set: ${prefillPrice}`, { duration: 1500 });
+      setLimitPrice(cleanPrice);
+      toast.success(`Limit price set: ${cleanPrice}`, { duration: 1500 });
     }
   }, [prefillPrice]);
 
