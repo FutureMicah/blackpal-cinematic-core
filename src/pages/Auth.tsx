@@ -95,7 +95,27 @@ const Auth = () => {
         toast({ title: "Authentication Successful", description: "Welcome back, Trader." });
       }
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      // Map Supabase errors to actionable, non-revealing messages
+      const raw = (error?.message || "").toLowerCase();
+      let title = "Sign in failed";
+      let description = "We couldn't sign you in. Please check your details and try again.";
+      if (raw.includes("email not confirmed") || raw.includes("not confirmed")) {
+        title = "Email not verified";
+        description = "Please confirm your email address using the link we sent before signing in.";
+      } else if (raw.includes("invalid login") || raw.includes("invalid credentials") || raw.includes("invalid_grant")) {
+        title = "Invalid sign-in details";
+        description = "The email or password you entered is incorrect.";
+      } else if (raw.includes("rate") || raw.includes("too many")) {
+        title = "Too many attempts";
+        description = "Please wait a moment before trying again.";
+      } else if (raw.includes("user already registered") || raw.includes("already registered")) {
+        title = "Account exists";
+        description = "An account with this email already exists. Try signing in instead.";
+      } else if (raw.includes("network") || raw.includes("fetch")) {
+        title = "Network error";
+        description = "Check your connection and try again.";
+      }
+      toast({ title, description, variant: "destructive" });
     } finally {
       setLoading(false);
     }

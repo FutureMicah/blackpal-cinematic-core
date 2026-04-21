@@ -11,6 +11,7 @@ import { OrderBook } from "@/components/terminal/OrderBook";
 import { PositionsPanel } from "@/components/terminal/PositionsPanel";
 import { MiniChart } from "@/components/terminal/MiniChart";
 import { TimeSales } from "@/components/terminal/TimeSales";
+import { PortfolioMiniChart } from "@/components/terminal/PortfolioMiniChart";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -227,10 +228,13 @@ const BlackTerminal = () => {
           <TimeSales symbol={selectedAsset} />
         </div>
 
-        {/* ZONE 3 — Trade Engine + Quick Trade */}
+        {/* ZONE 3 — Trade Engine + Quick Trade + Portfolio chart */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0 gap-2">
           <div className="shrink-0">
             <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
+          </div>
+          <div className="shrink-0">
+            <PortfolioMiniChart />
           </div>
           <div className="flex-1 overflow-hidden panel-luxe">
             <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={prefillPrice} />
