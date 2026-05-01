@@ -131,7 +131,7 @@ const BlackTerminal = () => {
           {mobileTab === "intel" && <LiveIntelPanel />}
         </div>
 
-        <div className="flex items-center panel-luxe rounded-none border-t border-[hsl(var(--gold)/0.15)] shrink-0">
+        <nav aria-label="Primary" className="flex items-center panel-luxe rounded-none border-t border-[hsl(var(--gold)/0.15)] shrink-0">
           {([
             { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
             { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
@@ -139,23 +139,31 @@ const BlackTerminal = () => {
             { key: "book" as MobileTab, icon: "analytics" as const, label: "Book" },
             { key: "tape" as MobileTab, icon: "trade" as const, label: "Tape" },
             { key: "positions" as MobileTab, icon: "wallet" as const, label: "Positions" },
-          ]).map(t => (
-            <button
-              key={t.key}
-              onClick={() => setMobileTab(t.key)}
-              className={cn(
-                "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all relative",
-                mobileTab === t.key ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50"
-              )}
-            >
-              {mobileTab === t.key && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)]" />
-              )}
-              <Icon3D name={t.icon} size={18} />
-              <span className="text-[9px] font-medium">{t.label}</span>
-            </button>
-          ))}
-        </div>
+          ]).map(t => {
+            const active = mobileTab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setMobileTab(t.key)}
+                aria-current={active ? "page" : undefined}
+                aria-label={t.label}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors duration-200 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))] focus-visible:ring-inset",
+                  active ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)] animate-scale-in origin-center"
+                  />
+                )}
+                <Icon3D name={t.icon} size={18} />
+                <span className="text-[9px] font-medium">{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         <button
           onClick={() => navigate("/chart")}
