@@ -21,16 +21,26 @@ export const OrderBook = ({ symbol, onPriceClick }: OrderBookProps) => {
   const [midPrice, setMidPrice] = useState<number>(0);
   const [direction, setDirection] = useState<"up" | "down" | null>(null);
   const [grouping, setGrouping] = useState(0.1);
+  const [status, setStatus] = useState<"connecting" | "live" | "error">("connecting");
   const lastMid = useRef(0);
 
   useEffect(() => {
+    setStatus("connecting");
+    setBids([]); setAsks([]);
     const bSym = symbolToBinance(symbol);
     const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${bSym}@depth20@100ms`);
+
+    // Failover: if no data within 6s, mark as error
+    const timeout = setTimeout(() => {
+      setStatus(s => s === "connecting" ? "error" : s);
+    }, 6000);
 
     ws.onmessage = (e) => {
       try {
         const data = JSON.parse(e.data);
         if (!data.bids || !data.asks) return;
+        clearTimeout(timeout);
+        setStatus("live");
 
         let bidTotal = 0;
         const newBids: Level[] = data.bids.slice(0, 15).map((b: [string, string]) => {
@@ -59,9 +69,11 @@ export const OrderBook = ({ symbol, onPriceClick }: OrderBookProps) => {
       } catch { /* ignore */ }
     };
 
-    ws.onerror = () => { /* silent — non-binance pairs will simply show empty */ };
+    ws.onerror = () => { setStatus("error"); };
+    ws.onclose = () => { /* normal cleanup */ };
 
     return () => {
+      clearTimeout(timeout);
       try { ws.close(); } catch { /* */ }
     };
   }, [symbol]);
