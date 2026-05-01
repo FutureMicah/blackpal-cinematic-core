@@ -27,6 +27,9 @@ export const TradeJournal = () => {
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filterSymbol, setFilterSymbol] = useState("");
+  const [filterNotes, setFilterNotes] = useState("");
+  const [filterEvent, setFilterEvent] = useState<"all" | "trailing" | "partial">("all");
 
   const loadEntries = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -125,6 +128,41 @@ export const TradeJournal = () => {
           </button>
         ))}
       </div>
+
+      {/* Filters */}
+      {tab === "trades" && (
+        <div className="flex items-center gap-1.5 px-3 pt-2 flex-wrap">
+          <Input
+            value={filterSymbol}
+            onChange={e => setFilterSymbol(e.target.value)}
+            placeholder="Symbol…"
+            className="h-7 text-[10px] bg-muted/20 border-border/20 w-24"
+            aria-label="Filter by symbol"
+          />
+          <Input
+            value={filterNotes}
+            onChange={e => setFilterNotes(e.target.value)}
+            placeholder="Search notes…"
+            className="h-7 text-[10px] bg-muted/20 border-border/20 flex-1 min-w-[120px]"
+            aria-label="Search strategy notes"
+          />
+          {(["all", "trailing", "partial"] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilterEvent(f)}
+              aria-pressed={filterEvent === f}
+              className={cn(
+                "text-[9px] px-2 py-1 rounded font-bold uppercase transition-all focus:outline-none focus:ring-1 focus:ring-primary/40",
+                filterEvent === f
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-muted-foreground/60 border border-transparent hover:bg-muted/20"
+              )}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Content */}
       <div className="flex-1 overflow-auto p-3 min-h-0">
