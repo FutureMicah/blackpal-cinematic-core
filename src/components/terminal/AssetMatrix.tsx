@@ -149,10 +149,14 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
   asset: Asset; selected: boolean; isFav: boolean;
   onSelect: () => void; onToggleFav: () => void;
 }) => (
-  <button
+  <div
     onClick={onSelect}
+    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+    role="button"
+    tabIndex={0}
+    aria-pressed={selected}
     className={cn(
-      "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group",
+      "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/40",
       selected
         ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
         : "hover:bg-muted/20 border border-transparent"
@@ -170,10 +174,12 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
       </p>
     </div>
     <button
+      type="button"
+      aria-label={isFav ? `Unfavorite ${asset.symbol}` : `Favorite ${asset.symbol}`}
       onClick={e => { e.stopPropagation(); onToggleFav(); }}
-      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-0.5"
+      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0 ml-0.5 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--gold))] rounded"
     >
       <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
     </button>
-  </button>
+  </div>
 );
