@@ -177,7 +177,13 @@ export const TradeJournal = () => {
                 <Icon3D name="journal" size={48} className="mx-auto mb-3 opacity-30" />
                 <p className="text-xs text-muted-foreground">No trades yet. Execute a trade to start your journal.</p>
               </div>
-            ) : entries.map(e => (
+            ) : entries.filter(e => {
+              if (filterSymbol && !e.symbol.toLowerCase().includes(filterSymbol.toLowerCase())) return false;
+              if (filterNotes && !e.notes.toLowerCase().includes(filterNotes.toLowerCase())) return false;
+              if (filterEvent === "trailing" && !((e as any).trailing_stop_pips || /trail/i.test(e.notes))) return false;
+              if (filterEvent === "partial" && !/partial|close \d+%/i.test(e.notes)) return false;
+              return true;
+            }).map(e => (
               <div key={e.id} className="p-2.5 rounded-xl bg-muted/10 border border-border/15 hover:border-border/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
