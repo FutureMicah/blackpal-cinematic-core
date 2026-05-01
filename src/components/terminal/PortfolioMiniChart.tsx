@@ -13,9 +13,18 @@ interface Point { t: number; v: number; }
  */
 export const PortfolioMiniChart = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [range, setRange] = useState<Range>("1W");
+  const [range, setRange] = useState<Range>(() => {
+    if (typeof window === "undefined") return "1W";
+    const saved = window.localStorage.getItem("portfolio_range");
+    return (RANGES.includes(saved as Range) ? saved : "1W") as Range;
+  });
   const [points, setPoints] = useState<Point[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Persist range across navigation
+  useEffect(() => {
+    try { window.localStorage.setItem("portfolio_range", range); } catch { /* ignore */ }
+  }, [range]);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,22 +149,44 @@ export const PortfolioMiniChart = () => {
         )}
       </div>
 
-      {/* Compact single-row range selector */}
-      <div className="flex items-center gap-1 mt-2 overflow-x-auto no-scrollbar">
-        {RANGES.map(r => (
-          <button
-            key={r}
-            onClick={() => setRange(r)}
-            className={cn(
-              "shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider transition-all",
-              range === r
-                ? "bg-[hsl(var(--gold)/0.15)] text-[hsl(var(--gold))] border border-[hsl(var(--gold)/0.3)]"
-                : "text-muted-foreground/60 hover:text-foreground border border-transparent"
-            )}
-          >
-            {r}
-          </button>
-        ))}
+      {/* Quick-skip mobile buttons + range selector */}
+      <div className="mt-2 flex items-center gap-2 flex-wrap">
+        {/* Quick chips (mobile-friendly large tap targets) */}
+        <div className="flex items-center gap-1 sm:hidden">
+          {(["1D", "1W", "1M"] as Range[]).map(r => (
+            <button
+              key={`q-${r}`}
+              onClick={() => setRange(r)}
+              aria-pressed={range === r}
+              className={cn(
+                "shrink-0 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all min-w-[44px] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--gold))]",
+                range === r
+                  ? "bg-[hsl(var(--gold)/0.2)] text-[hsl(var(--gold))] border border-[hsl(var(--gold)/0.4)]"
+                  : "bg-surface-2 text-muted-foreground border border-border/20"
+              )}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+        {/* Full range selector — desktop */}
+        <div className="hidden sm:flex items-center gap-1 overflow-x-auto no-scrollbar">
+          {RANGES.map(r => (
+            <button
+              key={r}
+              onClick={() => setRange(r)}
+              aria-pressed={range === r}
+              className={cn(
+                "shrink-0 px-2.5 py-1 rounded-md text-[10px] font-bold tracking-wider transition-all focus:outline-none focus:ring-1 focus:ring-[hsl(var(--gold))]",
+                range === r
+                  ? "bg-[hsl(var(--gold)/0.15)] text-[hsl(var(--gold))] border border-[hsl(var(--gold)/0.3)]"
+                  : "text-muted-foreground/60 hover:text-foreground border border-transparent"
+              )}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

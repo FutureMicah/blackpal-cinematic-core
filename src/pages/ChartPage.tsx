@@ -110,27 +110,36 @@ const ChartPage = () => {
         </div>
       )}
 
-      {/* Bottom Nav */}
-      <div className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0">
+      {/* Bottom Nav — keyboard accessible, animated active state */}
+      <nav aria-label="Primary" className="flex items-center border-t border-border/20 bg-background/95 backdrop-blur-md shrink-0">
         {[
-          { path: "/", icon: "home" as const, label: "Home" },
-          { path: "/chart", icon: "candlestick" as const, label: "Chart" },
-          { path: "/", icon: "trade" as const, label: "Trade" },
-          { path: "/", icon: "journal" as const, label: "Journal" },
+          { path: "/", icon: "home" as const, label: "Home", active: false },
+          { path: "/chart", icon: "candlestick" as const, label: "Chart", active: true },
+          { path: "/futures", icon: "analytics" as const, label: "Futures", active: false },
+          { path: "/", icon: "trade" as const, label: "Trade", active: false },
+          { path: "/", icon: "journal" as const, label: "Journal", active: false },
         ].map((t, i) => (
           <button
             key={i}
             onClick={() => navigate(t.path)}
+            aria-current={t.active ? "page" : undefined}
+            aria-label={t.label}
             className={cn(
-              "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all",
-              t.label === "Chart" ? "text-primary" : "text-muted-foreground/50"
+              "flex-1 flex flex-col items-center gap-0.5 py-2 relative transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-inset",
+              t.active ? "text-primary" : "text-muted-foreground/50 hover:text-muted-foreground"
             )}
           >
+            {t.active && (
+              <span
+                aria-hidden="true"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)] animate-scale-in origin-center"
+              />
+            )}
             <Icon3D name={t.icon} size={20} />
             <span className="text-[9px] font-medium">{t.label}</span>
           </button>
         ))}
-      </div>
+      </nav>
     </div>
   );
 };

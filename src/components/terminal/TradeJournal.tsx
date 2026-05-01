@@ -27,6 +27,9 @@ export const TradeJournal = () => {
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState("");
   const [loading, setLoading] = useState(true);
+  const [filterSymbol, setFilterSymbol] = useState("");
+  const [filterNotes, setFilterNotes] = useState("");
+  const [filterEvent, setFilterEvent] = useState<"all" | "trailing" | "partial">("all");
 
   const loadEntries = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -126,6 +129,41 @@ export const TradeJournal = () => {
         ))}
       </div>
 
+      {/* Filters */}
+      {tab === "trades" && (
+        <div className="flex items-center gap-1.5 px-3 pt-2 flex-wrap">
+          <Input
+            value={filterSymbol}
+            onChange={e => setFilterSymbol(e.target.value)}
+            placeholder="Symbol…"
+            className="h-7 text-[10px] bg-muted/20 border-border/20 w-24"
+            aria-label="Filter by symbol"
+          />
+          <Input
+            value={filterNotes}
+            onChange={e => setFilterNotes(e.target.value)}
+            placeholder="Search notes…"
+            className="h-7 text-[10px] bg-muted/20 border-border/20 flex-1 min-w-[120px]"
+            aria-label="Search strategy notes"
+          />
+          {(["all", "trailing", "partial"] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilterEvent(f)}
+              aria-pressed={filterEvent === f}
+              className={cn(
+                "text-[9px] px-2 py-1 rounded font-bold uppercase transition-all focus:outline-none focus:ring-1 focus:ring-primary/40",
+                filterEvent === f
+                  ? "bg-primary/15 text-primary border border-primary/25"
+                  : "text-muted-foreground/60 border border-transparent hover:bg-muted/20"
+              )}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Content */}
       <div className="flex-1 overflow-auto p-3 min-h-0">
         {loading ? (
@@ -139,7 +177,13 @@ export const TradeJournal = () => {
                 <Icon3D name="journal" size={48} className="mx-auto mb-3 opacity-30" />
                 <p className="text-xs text-muted-foreground">No trades yet. Execute a trade to start your journal.</p>
               </div>
-            ) : entries.map(e => (
+            ) : entries.filter(e => {
+              if (filterSymbol && !e.symbol.toLowerCase().includes(filterSymbol.toLowerCase())) return false;
+              if (filterNotes && !e.notes.toLowerCase().includes(filterNotes.toLowerCase())) return false;
+              if (filterEvent === "trailing" && !((e as any).trailing_stop_pips || /trail/i.test(e.notes))) return false;
+              if (filterEvent === "partial" && !/partial|close \d+%/i.test(e.notes)) return false;
+              return true;
+            }).map(e => (
               <div key={e.id} className="p-2.5 rounded-xl bg-muted/10 border border-border/15 hover:border-border/30 transition-all">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

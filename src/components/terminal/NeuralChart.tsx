@@ -23,12 +23,14 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
     if (!container) return;
     setChartLoaded(false);
 
+    // Hard fallback: dismiss loading after 8s no matter what so user isn't stuck
+    const fallback = setTimeout(() => setChartLoaded(true), 8000);
+
     // Remove previous widget wrapper if it exists
     if (widgetRef.current && widgetRef.current.parentNode) {
       widgetRef.current.parentNode.removeChild(widgetRef.current);
     }
 
-    // Create an isolated wrapper that React won't reconcile
     const wrapper = document.createElement("div");
     wrapper.style.width = "100%";
     wrapper.style.height = "100%";
@@ -41,10 +43,7 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
     tvDiv.style.height = "100%";
     wrapper.appendChild(tvDiv);
 
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/tv.js";
-    script.async = true;
-    script.onload = () => {
+    const initWidget = () => {
       if (!containerRef.current || !widgetRef.current) return;
       try {
         // @ts-ignore
@@ -64,17 +63,40 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
           container_id: tvDiv.id,
           backgroundColor: "rgba(10, 10, 18, 1)",
           gridColor: "rgba(40, 40, 60, 0.3)",
-          studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
+          studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies", "MASimple@tv-basicstudies"],
           loading_screen: { backgroundColor: "#0a0a12" },
+          allow_symbol_change: false,
+          details: true,
+          hotlist: false,
+          calendar: false,
         });
         setChartLoaded(true);
       } catch (e) {
         console.warn("TradingView widget error:", e);
+        setChartLoaded(true); // dismiss loader on error too
       }
     };
-    document.head.appendChild(script);
+
+    // If the script is already on the page (re-mount), init immediately
+    // @ts-ignore
+    if (typeof TradingView !== "undefined" && (window as any).TradingView?.widget) {
+      initWidget();
+    } else {
+      const existing = document.querySelector('script[src="https://s3.tradingview.com/tv.js"]') as HTMLScriptElement | null;
+      if (existing) {
+        existing.addEventListener("load", initWidget, { once: true });
+      } else {
+        const script = document.createElement("script");
+        script.src = "https://s3.tradingview.com/tv.js";
+        script.async = true;
+        script.onload = initWidget;
+        script.onerror = () => setChartLoaded(true);
+        document.head.appendChild(script);
+      }
+    }
 
     return () => {
+      clearTimeout(fallback);
       if (widgetRef.current && widgetRef.current.parentNode) {
         try {
           widgetRef.current.parentNode.removeChild(widgetRef.current);

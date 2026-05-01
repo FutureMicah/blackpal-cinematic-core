@@ -10,6 +10,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import BlackTerminal from "./pages/BlackTerminal";
 import ChartPage from "./pages/ChartPage";
+import FuturesDashboard from "./pages/FuturesDashboard";
 import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
       <Routes>
         <Route path="/" element={<BlackTerminal />} />
         <Route path="/chart" element={<ChartPage />} />
+        <Route path="/futures" element={<FuturesDashboard />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/settings" element={<Settings />} />

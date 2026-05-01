@@ -14,6 +14,7 @@ import { TimeSales } from "@/components/terminal/TimeSales";
 import { PortfolioMiniChart } from "@/components/terminal/PortfolioMiniChart";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRealtimeWallet } from "@/hooks/useRealtimeWallet";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
@@ -22,7 +23,6 @@ type DesktopTab = "positions" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
   const [selectedAsset, setSelectedAsset] = useState("BTC/USDT");
-  const [btkBalance, setBtkBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("trade");
   const [desktopTab, setDesktopTab] = useState<DesktopTab>("positions");
@@ -32,23 +32,14 @@ const BlackTerminal = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  // Realtime wallet — keeps balance synced with the other BlackPAL app
+  const { balances, refetch: refetchWallet } = useRealtimeWallet();
+  const btkBalance = balances.BTK || 0;
+
   const handleOrderBookClick = (price: string) => {
     // Append timestamp so identical clicks still re-trigger autofill
     setPrefillPrice(`${price}|${Date.now()}`);
   };
-
-  const loadWallet = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data } = await supabase
-      .from("user_wallets")
-      .select("balance, token_id, tokens:token_id(symbol)")
-      .eq("user_id", session.user.id);
-    if (data) {
-      const btkWallet = data.find((w: any) => (w.tokens as any)?.symbol === "BTK");
-      setBtkBalance(btkWallet ? Number(btkWallet.balance) : 0);
-    }
-  }, []);
 
   const loadTradeHistory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -81,10 +72,10 @@ const BlackTerminal = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!loading) { loadWallet(); loadTradeHistory(); }
-  }, [loading, loadWallet, loadTradeHistory]);
+    if (!loading) { loadTradeHistory(); }
+  }, [loading, loadTradeHistory]);
 
-  const handleTradeExecuted = () => { loadWallet(); loadTradeHistory(); };
+  const handleTradeExecuted = () => { refetchWallet(); loadTradeHistory(); };
 
   if (loading) {
     return (
@@ -126,12 +117,12 @@ const BlackTerminal = () => {
           {mobileTab === "chart" && <div className="h-full p-2"><MiniChart symbol={selectedAsset} /></div>}
           {mobileTab === "book" && <OrderBook symbol={selectedAsset} onPriceClick={(p) => { handleOrderBookClick(p); setMobileTab("trade"); }} />}
           {mobileTab === "tape" && <TimeSales symbol={selectedAsset} />}
-          {mobileTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
+          {mobileTab === "positions" && <PositionsPanel onPositionClosed={refetchWallet} />}
           {mobileTab === "journal" && <TradeJournal />}
           {mobileTab === "intel" && <LiveIntelPanel />}
         </div>
 
-        <div className="flex items-center panel-luxe rounded-none border-t border-[hsl(var(--gold)/0.15)] shrink-0">
+        <nav aria-label="Primary" className="flex items-center panel-luxe rounded-none border-t border-[hsl(var(--gold)/0.15)] shrink-0">
           {([
             { key: "trade" as MobileTab, icon: "trade" as const, label: "Trade" },
             { key: "assets" as MobileTab, icon: "assets" as const, label: "Markets" },
@@ -139,23 +130,31 @@ const BlackTerminal = () => {
             { key: "book" as MobileTab, icon: "analytics" as const, label: "Book" },
             { key: "tape" as MobileTab, icon: "trade" as const, label: "Tape" },
             { key: "positions" as MobileTab, icon: "wallet" as const, label: "Positions" },
-          ]).map(t => (
-            <button
-              key={t.key}
-              onClick={() => setMobileTab(t.key)}
-              className={cn(
-                "flex-1 flex flex-col items-center gap-0.5 py-2 transition-all relative",
-                mobileTab === t.key ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50"
-              )}
-            >
-              {mobileTab === t.key && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)]" />
-              )}
-              <Icon3D name={t.icon} size={18} />
-              <span className="text-[9px] font-medium">{t.label}</span>
-            </button>
-          ))}
-        </div>
+          ]).map(t => {
+            const active = mobileTab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setMobileTab(t.key)}
+                aria-current={active ? "page" : undefined}
+                aria-label={t.label}
+                className={cn(
+                  "flex-1 flex flex-col items-center gap-0.5 py-2 transition-colors duration-200 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))] focus-visible:ring-inset",
+                  active ? "text-[hsl(var(--gold))]" : "text-muted-foreground/50 hover:text-muted-foreground"
+                )}
+              >
+                {active && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-[hsl(var(--gold))] shadow-[0_0_8px_hsl(var(--gold)/0.6)] animate-scale-in origin-center"
+                  />
+                )}
+                <Icon3D name={t.icon} size={18} />
+                <span className="text-[9px] font-medium">{t.label}</span>
+              </button>
+            );
+          })}
+        </nav>
 
         <button
           onClick={() => navigate("/chart")}
@@ -186,8 +185,15 @@ const BlackTerminal = () => {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => navigate("/futures")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-zinc-700 hover:border-zinc-500 text-[10px] font-bold tracking-wider text-zinc-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+          >
+            <Icon3D name="analytics" size={14} />
+            FUTURES
+          </button>
+          <button
             onClick={() => navigate("/chart")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-[hsl(var(--gold)/0.2)] hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider text-[hsl(var(--gold))] transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-[hsl(var(--gold)/0.2)] hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider text-[hsl(var(--gold))] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))]"
           >
             <Icon3D name="candlestick" size={14} />
             CHART VIEW
@@ -267,7 +273,7 @@ const BlackTerminal = () => {
             ))}
           </div>
           <div className="flex-1 overflow-hidden">
-            {desktopTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
+            {desktopTab === "positions" && <PositionsPanel onPositionClosed={refetchWallet} />}
             {desktopTab === "journal" && <TradeJournal />}
             {desktopTab === "sniper" && <AutoSniper symbol={selectedAsset} />}
             {desktopTab === "intel" && <LiveIntelPanel />}
