@@ -185,8 +185,15 @@ const BlackTerminal = () => {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => navigate("/futures")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-zinc-700 hover:border-zinc-500 text-[10px] font-bold tracking-wider text-zinc-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500"
+          >
+            <Icon3D name="analytics" size={14} />
+            FUTURES
+          </button>
+          <button
             onClick={() => navigate("/chart")}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-[hsl(var(--gold)/0.2)] hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider text-[hsl(var(--gold))] transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-2 hover:bg-surface-3 border border-[hsl(var(--gold)/0.2)] hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider text-[hsl(var(--gold))] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))]"
           >
             <Icon3D name="candlestick" size={14} />
             CHART VIEW
