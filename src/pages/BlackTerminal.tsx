@@ -72,10 +72,10 @@ const BlackTerminal = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (!loading) { loadWallet(); loadTradeHistory(); }
-  }, [loading, loadWallet, loadTradeHistory]);
+    if (!loading) { loadTradeHistory(); }
+  }, [loading, loadTradeHistory]);
 
-  const handleTradeExecuted = () => { loadWallet(); loadTradeHistory(); };
+  const handleTradeExecuted = () => { refetchWallet(); loadTradeHistory(); };
 
   if (loading) {
     return (
