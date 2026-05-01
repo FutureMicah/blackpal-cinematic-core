@@ -14,6 +14,7 @@ import { TimeSales } from "@/components/terminal/TimeSales";
 import { PortfolioMiniChart } from "@/components/terminal/PortfolioMiniChart";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useRealtimeWallet } from "@/hooks/useRealtimeWallet";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
@@ -22,7 +23,6 @@ type DesktopTab = "positions" | "journal" | "sniper" | "intel";
 
 const BlackTerminal = () => {
   const [selectedAsset, setSelectedAsset] = useState("BTC/USDT");
-  const [btkBalance, setBtkBalance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [mobileTab, setMobileTab] = useState<MobileTab>("trade");
   const [desktopTab, setDesktopTab] = useState<DesktopTab>("positions");
@@ -32,23 +32,14 @@ const BlackTerminal = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  // Realtime wallet — keeps balance synced with the other BlackPAL app
+  const { balances, refetch: refetchWallet } = useRealtimeWallet();
+  const btkBalance = balances.BTK || 0;
+
   const handleOrderBookClick = (price: string) => {
     // Append timestamp so identical clicks still re-trigger autofill
     setPrefillPrice(`${price}|${Date.now()}`);
   };
-
-  const loadWallet = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-    const { data } = await supabase
-      .from("user_wallets")
-      .select("balance, token_id, tokens:token_id(symbol)")
-      .eq("user_id", session.user.id);
-    if (data) {
-      const btkWallet = data.find((w: any) => (w.tokens as any)?.symbol === "BTK");
-      setBtkBalance(btkWallet ? Number(btkWallet.balance) : 0);
-    }
-  }, []);
 
   const loadTradeHistory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
