@@ -128,7 +128,16 @@ export const OrderBook = ({ symbol, onPriceClick }: OrderBookProps) => {
       <div className="flex-1 flex flex-col-reverse overflow-hidden">
         <div className="overflow-y-auto scrollbar-none">
           {asks.length === 0 ? (
-            <div className="px-3 py-4 text-center text-[10px] text-muted-foreground/50">Awaiting depth data…</div>
+            <div className="px-3 py-4 text-center text-[10px] text-muted-foreground/60 flex items-center justify-center gap-2">
+              {status === "error" ? (
+                <span className="text-ask">⚠ Depth unavailable</span>
+              ) : (
+                <>
+                  <div className="w-2.5 h-2.5 border border-[hsl(var(--gold)/0.3)] border-t-[hsl(var(--gold))] rounded-full animate-spin" />
+                  Connecting…
+                </>
+              )}
+            </div>
           ) : asks.map((lvl, i) => (
             <button
               key={`ask-${i}`}
@@ -168,7 +177,9 @@ export const OrderBook = ({ symbol, onPriceClick }: OrderBookProps) => {
       {/* Bids */}
       <div className="flex-1 overflow-y-auto scrollbar-none">
         {bids.length === 0 ? (
-          <div className="px-3 py-4 text-center text-[10px] text-muted-foreground/50">Awaiting depth data…</div>
+          <div className="px-3 py-4 text-center text-[10px] text-muted-foreground/60">
+            {status === "error" ? <span className="text-ask">⚠ No data</span> : "Awaiting bids…"}
+          </div>
         ) : bids.map((lvl, i) => (
           <button
             key={`bid-${i}`}
