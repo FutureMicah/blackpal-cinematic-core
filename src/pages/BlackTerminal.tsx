@@ -117,7 +117,7 @@ const BlackTerminal = () => {
           {mobileTab === "chart" && <div className="h-full p-2"><MiniChart symbol={selectedAsset} /></div>}
           {mobileTab === "book" && <OrderBook symbol={selectedAsset} onPriceClick={(p) => { handleOrderBookClick(p); setMobileTab("trade"); }} />}
           {mobileTab === "tape" && <TimeSales symbol={selectedAsset} />}
-          {mobileTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
+          {mobileTab === "positions" && <PositionsPanel onPositionClosed={refetchWallet} />}
           {mobileTab === "journal" && <TradeJournal />}
           {mobileTab === "intel" && <LiveIntelPanel />}
         </div>
@@ -266,7 +266,7 @@ const BlackTerminal = () => {
             ))}
           </div>
           <div className="flex-1 overflow-hidden">
-            {desktopTab === "positions" && <PositionsPanel onPositionClosed={loadWallet} />}
+            {desktopTab === "positions" && <PositionsPanel onPositionClosed={refetchWallet} />}
             {desktopTab === "journal" && <TradeJournal />}
             {desktopTab === "sniper" && <AutoSniper symbol={selectedAsset} />}
             {desktopTab === "intel" && <LiveIntelPanel />}
