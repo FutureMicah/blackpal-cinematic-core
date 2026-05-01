@@ -26,22 +26,37 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [high24h, setHigh24h] = useState(0);
   const [low24h, setLow24h] = useState(0);
   const [volume24h, setVolume24h] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Fetch historical candles
+  // Fetch historical candles + timeout fallback
   useEffect(() => {
+    setLoadError(null);
+    setCandles([]);
     const bSym = symbolToBinance(symbol).toUpperCase();
-    fetch(`https://api.binance.com/api/v3/klines?symbol=${bSym}&interval=${tf}&limit=60`)
-      .then(r => r.json())
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+
+    fetch(`https://api.binance.com/api/v3/klines?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal })
+      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
       .then((data: any[][]) => {
-        if (!Array.isArray(data)) return;
+        clearTimeout(timeout);
+        if (!Array.isArray(data) || data.length === 0) {
+          setLoadError("No data for this pair");
+          return;
+        }
         const parsed = data.map(d => ({
           t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]),
           l: parseFloat(d[3]), c: parseFloat(d[4]),
         }));
         setCandles(parsed);
       })
-      .catch(() => { /* silent */ });
+      .catch((e) => {
+        clearTimeout(timeout);
+        setLoadError(e.name === "AbortError" ? "Connection timeout" : "Pair unavailable");
+      });
+
+    return () => { clearTimeout(timeout); controller.abort(); };
   }, [symbol, tf]);
 
   // Live ticker WebSocket for 24h stats + last price
@@ -202,8 +217,15 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       <div className="flex-1 relative min-h-0">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
         {candles.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-muted-foreground/50">
-            Loading chart…
+          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-muted-foreground/60 gap-1.5">
+            {loadError ? (
+              <span className="text-ask">⚠ {loadError}</span>
+            ) : (
+              <>
+                <div className="w-3 h-3 border border-[hsl(var(--gold)/0.3)] border-t-[hsl(var(--gold))] rounded-full animate-spin" />
+                Loading chart…
+              </>
+            )}
           </div>
         )}
       </div>
