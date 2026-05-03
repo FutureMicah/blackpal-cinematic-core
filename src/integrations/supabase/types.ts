@@ -44,6 +44,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contest_claims: {
+        Row: {
+          claimed_at: string
+          contest_period: string
+          id: string
+          prize_amount: number
+          prize_tier: string
+          rank: number
+          status: string
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string
+          contest_period: string
+          id?: string
+          prize_amount?: number
+          prize_tier: string
+          rank: number
+          status?: string
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string
+          contest_period?: string
+          id?: string
+          prize_amount?: number
+          prize_tier?: string
+          rank?: number
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       country_activity: {
         Row: {
           active_users: number | null
@@ -1087,9 +1120,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      claim_contest_prize: { Args: { p_contest_period: string }; Returns: Json }
       complete_mission: {
         Args: { p_mission_id: string; p_user_id: string }
         Returns: Json
+      }
+      get_contest_leaderboard: {
+        Args: { p_since?: string }
+        Returns: {
+          avatar_url: string
+          email: string
+          full_name: string
+          rank: number
+          total_pnl: number
+          trade_count: number
+          user_id: string
+          win_count: number
+        }[]
       }
       has_role: {
         Args: {
