@@ -118,14 +118,15 @@ const Auth = () => {
           password: data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: fullName },
+            data: { full_name: data.fullName },
           },
         });
         if (error) throw error;
         toast({ title: "Success", description: "Account created! Check your email to verify." });
         setIsSignUp(false);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const data = parsed.data as { email: string; password: string };
+        const { error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
         if (error) throw error;
         toast({ title: "Authentication Successful", description: "Welcome back, Trader." });
       }
