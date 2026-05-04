@@ -71,9 +71,14 @@ const Auth = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = resetSchema.safeParse({ email });
+    if (!parsed.success) {
+      toast({ title: "Invalid input", description: parsed.error.issues[0].message, variant: "destructive" });
+      return;
+    }
     setResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
