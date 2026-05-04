@@ -8,6 +8,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/blackpal-logo.jpg";
 import { Sparkles, Eye, EyeOff, Loader2 } from "lucide-react";
+import { z } from "zod";
+
+const emailSchema = z.string().trim().email("Invalid email address").max(255, "Email too long");
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(72, "Password too long");
+const fullNameSchema = z
+  .string()
+  .trim()
+  .min(2, "Name must be at least 2 characters")
+  .max(100, "Name too long")
+  .regex(/^[\p{L}\s'\-.]+$/u, "Name contains invalid characters");
+
+const signInSchema = z.object({ email: emailSchema, password: passwordSchema });
+const signUpSchema = signInSchema.extend({ fullName: fullNameSchema });
+const resetSchema = z.object({ email: emailSchema });
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
@@ -54,9 +71,14 @@ const Auth = () => {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    const parsed = resetSchema.safeParse({ email });
+    if (!parsed.success) {
+      toast({ title: "Invalid input", description: parsed.error.issues[0].message, variant: "destructive" });
+      return;
+    }
     setResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
       if (error) throw error;
@@ -74,23 +96,37 @@ const Auth = () => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const schema = isSignUp ? signUpSchema : signInSchema;
+    const parsed = schema.safeParse(isSignUp ? { email, password, fullName } : { email, password });
+    if (!parsed.success) {
+      toast({
+        title: "Invalid input",
+        description: parsed.error.issues[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignUp) {
+        const data = parsed.data as { email: string; password: string; fullName: string };
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: data.email,
+          password: data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: fullName },
+            data: { full_name: data.fullName },
           },
         });
         if (error) throw error;
         toast({ title: "Success", description: "Account created! Check your email to verify." });
         setIsSignUp(false);
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const data = parsed.data as { email: string; password: string };
+        const { error } = await supabase.auth.signInWithPassword({ email: data.email, password: data.password });
         if (error) throw error;
         toast({ title: "Authentication Successful", description: "Welcome back, Trader." });
       }
