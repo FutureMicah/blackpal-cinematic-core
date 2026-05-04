@@ -8,6 +8,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { User, Session } from "@supabase/supabase-js";
 import logo from "@/assets/blackpal-logo.jpg";
 import { Sparkles, Eye, EyeOff, Loader2 } from "lucide-react";
+import { z } from "zod";
+
+const emailSchema = z.string().trim().email("Invalid email address").max(255, "Email too long");
+const passwordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(72, "Password too long");
+const fullNameSchema = z
+  .string()
+  .trim()
+  .min(2, "Name must be at least 2 characters")
+  .max(100, "Name too long")
+  .regex(/^[\p{L}\s'\-.]+$/u, "Name contains invalid characters");
+
+const signInSchema = z.object({ email: emailSchema, password: passwordSchema });
+const signUpSchema = signInSchema.extend({ fullName: fullNameSchema });
+const resetSchema = z.object({ email: emailSchema });
 
 const Auth = () => {
   const [loading, setLoading] = useState(false);
