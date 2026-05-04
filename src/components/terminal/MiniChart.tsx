@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 
@@ -8,7 +8,13 @@ interface MiniChartProps {
 
 interface Candle { o: number; h: number; l: number; c: number; t: number; }
 
-const symbolToBinance = (s: string) => s.replace("/", "").toLowerCase();
+const symbolToBinance = (s: string) => s.replace("/", "").toUpperCase();
+const CACHE_PREFIX = "mini-chart-cache:";
+const WS_BASE = "wss://stream.binance.com/ws";
+const REST_ENDPOINTS = [
+  "https://data-api.binance.vision/api/v3/klines",
+  "https://api.binance.com/api/v3/klines",
+] as const;
 
 const TIMEFRAMES = [
   { label: "1m", interval: "1m" },
@@ -17,6 +23,24 @@ const TIMEFRAMES = [
   { label: "1h", interval: "1h" },
   { label: "4h", interval: "4h" },
 ];
+
+const loadCachedCandles = (key: string): Candle[] => {
+  try {
+    const raw = window.localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const saveCachedCandles = (key: string, candles: Candle[]) => {
+  try {
+    window.localStorage.setItem(key, JSON.stringify(candles.slice(-60)));
+  } catch {
+    // ignore cache failures
+  }
+};
 
 export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [candles, setCandles] = useState<Candle[]>([]);
@@ -27,147 +51,203 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [low24h, setLow24h] = useState(0);
   const [volume24h, setVolume24h] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [transport, setTransport] = useState<"live" | "fallback">("live");
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  // Fetch historical candles + timeout fallback
+  const bSym = useMemo(() => symbolToBinance(symbol), [symbol]);
+  const cacheKey = `${CACHE_PREFIX}${bSym}:${tf}`;
+
   useEffect(() => {
     setLoadError(null);
-    setCandles([]);
-    const bSym = symbolToBinance(symbol).toUpperCase();
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
+    setTransport("live");
+    const cached = typeof window !== "undefined" ? loadCachedCandles(cacheKey) : [];
+    if (cached.length) setCandles(cached);
 
-    fetch(`https://api.binance.com/api/v3/klines?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal })
-      .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then((data: any[][]) => {
-        clearTimeout(timeout);
-        if (!Array.isArray(data) || data.length === 0) {
-          setLoadError("No data for this pair");
+    let cancelled = false;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const fetchCandles = async () => {
+      for (const endpoint of REST_ENDPOINTS) {
+        try {
+          const response = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal });
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const data = await response.json();
+          if (!Array.isArray(data) || data.length === 0) throw new Error("EMPTY");
+          if (cancelled) return;
+          const parsed = data.map((d: any[]) => ({
+            t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]),
+          }));
+          setCandles(parsed);
+          saveCachedCandles(cacheKey, parsed);
+          setLoadError(null);
           return;
+        } catch (error: any) {
+          if (controller.signal.aborted || error?.name === "AbortError") break;
         }
-        const parsed = data.map(d => ({
-          t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]),
-          l: parseFloat(d[3]), c: parseFloat(d[4]),
-        }));
-        setCandles(parsed);
-      })
-      .catch((e) => {
-        clearTimeout(timeout);
-        setLoadError(e.name === "AbortError" ? "Connection timeout" : "Pair unavailable");
+      }
+
+      if (!cancelled) {
+        setTransport("fallback");
+        setLoadError(cached.length ? "Live feed delayed — showing cached data" : "Market data temporarily unavailable");
+      }
+    };
+
+    void fetchCandles();
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [bSym, tf, cacheKey]);
+
+  useEffect(() => {
+    let tickerWs: WebSocket | null = null;
+    let klineWs: WebSocket | null = null;
+    let reconnectTimer: number | null = null;
+    let isCancelled = false;
+
+    const connect = () => {
+      if (isCancelled) return;
+
+      tickerWs = new WebSocket(`${WS_BASE}/${bSym.toLowerCase()}@ticker`);
+      tickerWs.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          setPrice(parseFloat(d.c));
+          setChange24h(parseFloat(d.P));
+          setHigh24h(parseFloat(d.h));
+          setLow24h(parseFloat(d.l));
+          setVolume24h(parseFloat(d.q));
+          setTransport("live");
+          if (loadError === "Live feed delayed — showing cached data") setLoadError(null);
+        } catch {
+          // ignore
+        }
+      };
+      tickerWs.onerror = () => setTransport("fallback");
+      tickerWs.onclose = () => {
+        if (!isCancelled) reconnectTimer = window.setTimeout(connect, 2500);
+      };
+
+      klineWs = new WebSocket(`${WS_BASE}/${bSym.toLowerCase()}@kline_${tf}`);
+      klineWs.onmessage = (e) => {
+        try {
+          const d = JSON.parse(e.data);
+          const k = d.k;
+          const newCandle: Candle = {
+            t: k.t,
+            o: parseFloat(k.o),
+            h: parseFloat(k.h),
+            l: parseFloat(k.l),
+            c: parseFloat(k.c),
+          };
+          setCandles((prev) => {
+            if (prev.length === 0) return [newCandle];
+            const last = prev[prev.length - 1];
+            const next = last.t === newCandle.t
+              ? [...prev.slice(0, -1), newCandle]
+              : [...prev.slice(-59), newCandle];
+            saveCachedCandles(cacheKey, next);
+            return next;
+          });
+          setTransport("live");
+        } catch {
+          // ignore
+        }
+      };
+      klineWs.onerror = () => setTransport("fallback");
+      klineWs.onclose = () => {
+        if (!isCancelled && reconnectTimer === null) reconnectTimer = window.setTimeout(connect, 2500);
+      };
+    };
+
+    connect();
+    return () => {
+      isCancelled = true;
+      if (reconnectTimer) window.clearTimeout(reconnectTimer);
+      try { tickerWs?.close(); } catch {}
+      try { klineWs?.close(); } catch {}
+    };
+  }, [bSym, tf, cacheKey, loadError]);
+
+  useEffect(() => {
+    const draw = () => {
+      const canvas = canvasRef.current;
+      if (!canvas || candles.length === 0) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = rect.width;
+      const H = rect.height;
+      ctx.clearRect(0, 0, W, H);
+
+      const highs = candles.map((c) => c.h);
+      const lows = candles.map((c) => c.l);
+      const max = Math.max(...highs);
+      const min = Math.min(...lows);
+      const range = max - min || 1;
+      const padTop = 8;
+      const padBot = 8;
+      const drawH = H - padTop - padBot;
+      const candleW = W / candles.length;
+      const bodyW = Math.max(1, candleW * 0.7);
+
+      ctx.strokeStyle = "hsl(45 60% 50% / 0.06)";
+      ctx.lineWidth = 1;
+      for (let i = 1; i < 4; i++) {
+        const y = padTop + (drawH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(W, y);
+        ctx.stroke();
+      }
+
+      candles.forEach((c, i) => {
+        const x = i * candleW + candleW / 2;
+        const yHigh = padTop + ((max - c.h) / range) * drawH;
+        const yLow = padTop + ((max - c.l) / range) * drawH;
+        const yOpen = padTop + ((max - c.o) / range) * drawH;
+        const yClose = padTop + ((max - c.c) / range) * drawH;
+        const bullish = c.c >= c.o;
+        const color = bullish ? "hsl(150 100% 45%)" : "hsl(0 84% 60%)";
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(x, yHigh);
+        ctx.lineTo(x, yLow);
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
+        ctx.fillRect(x - bodyW / 2, bodyTop, bodyW, bodyHeight);
       });
 
-    return () => { clearTimeout(timeout); controller.abort(); };
-  }, [symbol, tf]);
-
-  // Live ticker WebSocket for 24h stats + last price
-  useEffect(() => {
-    const bSym = symbolToBinance(symbol);
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${bSym}@ticker`);
-    ws.onmessage = (e) => {
-      try {
-        const d = JSON.parse(e.data);
-        setPrice(parseFloat(d.c));
-        setChange24h(parseFloat(d.P));
-        setHigh24h(parseFloat(d.h));
-        setLow24h(parseFloat(d.l));
-        setVolume24h(parseFloat(d.q));
-      } catch { /* ignore */ }
-    };
-    ws.onerror = () => { /* silent */ };
-    return () => { try { ws.close(); } catch { /* */ } };
-  }, [symbol]);
-
-  // Live kline WebSocket — updates last candle
-  useEffect(() => {
-    const bSym = symbolToBinance(symbol);
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${bSym}@kline_${tf}`);
-    ws.onmessage = (e) => {
-      try {
-        const d = JSON.parse(e.data);
-        const k = d.k;
-        const newCandle: Candle = {
-          t: k.t, o: parseFloat(k.o), h: parseFloat(k.h),
-          l: parseFloat(k.l), c: parseFloat(k.c),
-        };
-        setCandles(prev => {
-          if (prev.length === 0) return [newCandle];
-          const last = prev[prev.length - 1];
-          if (last.t === newCandle.t) {
-            return [...prev.slice(0, -1), newCandle];
-          }
-          return [...prev.slice(-59), newCandle];
-        });
-      } catch { /* ignore */ }
-    };
-    ws.onerror = () => { /* silent */ };
-    return () => { try { ws.close(); } catch { /* */ } };
-  }, [symbol, tf]);
-
-  // Draw candles
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || candles.length === 0) return;
-    const dpr = window.devicePixelRatio || 1;
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.scale(dpr, dpr);
-    const W = rect.width;
-    const H = rect.height;
-    ctx.clearRect(0, 0, W, H);
-
-    const highs = candles.map(c => c.h);
-    const lows = candles.map(c => c.l);
-    const max = Math.max(...highs);
-    const min = Math.min(...lows);
-    const range = max - min || 1;
-    const padTop = 8, padBot = 8;
-    const drawH = H - padTop - padBot;
-    const candleW = W / candles.length;
-    const bodyW = Math.max(1, candleW * 0.7);
-
-    // Grid lines
-    ctx.strokeStyle = "hsl(45 60% 50% / 0.06)";
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 4; i++) {
-      const y = padTop + (drawH / 4) * i;
+      const last = candles[candles.length - 1];
+      const yLast = padTop + ((max - last.c) / range) * drawH;
+      ctx.strokeStyle = "hsl(45 100% 50% / 0.6)";
+      ctx.setLineDash([3, 3]);
       ctx.beginPath();
-      ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-    }
+      ctx.moveTo(0, yLast);
+      ctx.lineTo(W, yLast);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    };
 
-    // Candles
-    candles.forEach((c, i) => {
-      const x = i * candleW + candleW / 2;
-      const yHigh = padTop + ((max - c.h) / range) * drawH;
-      const yLow = padTop + ((max - c.l) / range) * drawH;
-      const yOpen = padTop + ((max - c.o) / range) * drawH;
-      const yClose = padTop + ((max - c.c) / range) * drawH;
-      const bullish = c.c >= c.o;
-      const color = bullish ? "hsl(150 100% 45%)" : "hsl(0 84% 60%)";
-
-      // Wick
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x, yHigh); ctx.lineTo(x, yLow); ctx.stroke();
-
-      // Body
-      ctx.fillStyle = color;
-      const bodyTop = Math.min(yOpen, yClose);
-      const bodyHeight = Math.max(1, Math.abs(yClose - yOpen));
-      ctx.fillRect(x - bodyW / 2, bodyTop, bodyW, bodyHeight);
-    });
-
-    // Last price line
-    const last = candles[candles.length - 1];
-    const yLast = padTop + ((max - last.c) / range) * drawH;
-    ctx.strokeStyle = "hsl(45 100% 50% / 0.6)";
-    ctx.setLineDash([3, 3]);
-    ctx.beginPath();
-    ctx.moveTo(0, yLast); ctx.lineTo(W, yLast); ctx.stroke();
-    ctx.setLineDash([]);
+    draw();
+    if (!canvasRef.current) return;
+    resizeObserverRef.current?.disconnect();
+    resizeObserverRef.current = new ResizeObserver(draw);
+    resizeObserverRef.current.observe(canvasRef.current);
+    return () => resizeObserverRef.current?.disconnect();
   }, [candles]);
 
   const isPositive = change24h >= 0;
@@ -175,11 +255,10 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
 
   return (
     <div className="panel-luxe overflow-hidden flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/15 shrink-0">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0">
           <Icon3D name="candlestick" size={14} />
-          <span className="text-sm font-mono font-bold text-foreground number-mono">{symbol}</span>
+          <span className="text-sm font-mono font-bold text-foreground number-mono truncate">{symbol}</span>
           <span className={cn(
             "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded number-mono",
             isPositive ? "text-bid bg-bid/10" : "text-ask bg-ask/10"
@@ -187,25 +266,32 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             {isPositive ? "+" : ""}{change24h.toFixed(2)}%
           </span>
         </div>
-        <div className="flex items-center gap-0.5">
-          {TIMEFRAMES.map(t => (
-            <button
-              key={t.interval}
-              onClick={() => setTf(t.interval)}
-              className={cn(
-                "text-[9px] px-1.5 py-0.5 rounded font-mono transition-all",
-                tf === t.interval
-                  ? "bg-[hsl(var(--gold)/0.15)] text-[hsl(var(--gold))] border border-[hsl(var(--gold)/0.3)]"
-                  : "text-muted-foreground/50 hover:text-muted-foreground border border-transparent"
-              )}
-            >
-              {t.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5">
+          <span className={cn(
+            "text-[9px] font-bold tracking-wider",
+            transport === "live" ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--gold))]"
+          )}>
+            {transport === "live" ? "LIVE" : "CACHE"}
+          </span>
+          <div className="flex items-center gap-0.5">
+            {TIMEFRAMES.map((t) => (
+              <button
+                key={t.interval}
+                onClick={() => setTf(t.interval)}
+                className={cn(
+                  "text-[9px] px-1.5 py-0.5 rounded font-mono transition-all",
+                  tf === t.interval
+                    ? "bg-[hsl(var(--gold)/0.15)] text-[hsl(var(--gold))] border border-[hsl(var(--gold)/0.3)]"
+                    : "text-muted-foreground/50 hover:text-muted-foreground border border-transparent"
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Stats strip */}
       <div className="grid grid-cols-4 gap-2 px-3 py-1.5 border-b border-border/10 shrink-0 text-[9px]">
         <Stat label="LAST" value={fmtPrice(price)} accent={isPositive ? "bid" : "ask"} />
         <Stat label="24H HIGH" value={fmtPrice(high24h)} />
@@ -213,13 +299,12 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
         <Stat label="24H VOL" value={`${(volume24h / 1e6).toFixed(1)}M`} accent="gold" />
       </div>
 
-      {/* Chart canvas */}
       <div className="flex-1 relative min-h-0">
-        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-label={`${symbol} price chart`} />
         {candles.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center text-[10px] text-muted-foreground/60 gap-1.5">
             {loadError ? (
-              <span className="text-ask">⚠ {loadError}</span>
+              <span className="text-[hsl(var(--gold))]">⚠ {loadError}</span>
             ) : (
               <>
                 <div className="w-3 h-3 border border-[hsl(var(--gold)/0.3)] border-t-[hsl(var(--gold))] rounded-full animate-spin" />
