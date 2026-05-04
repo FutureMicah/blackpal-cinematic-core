@@ -37,13 +37,32 @@ const Subscribe = () => {
     publicKey: PAYSTACK_PUBLIC_KEY,
   };
 
-  const onSuccess = (reference: any) => {
-    toast({
-      title: "Payment Successful!",
-      description: "Your subscription is now active. Welcome to the academy!",
-    });
-    // Here you would save the subscription status to your backend
-    navigate("/dashboard");
+  const onSuccess = async (reference: any) => {
+    // SECURITY: never trust the client callback alone — verify server-side.
+    const ref = typeof reference === "string" ? reference : reference?.reference;
+    if (!ref) {
+      toast({ title: "Verification failed", description: "Missing payment reference.", variant: "destructive" });
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke("verify-paystack-payment", {
+        body: { reference: ref },
+      });
+      if (error || !data?.success) {
+        throw new Error(data?.error || error?.message || "Verification failed");
+      }
+      toast({
+        title: "Payment Verified!",
+        description: "Your subscription is now active. Welcome to the academy!",
+      });
+      navigate("/dashboard");
+    } catch (err: any) {
+      toast({
+        title: "Payment not verified",
+        description: err?.message || "We could not confirm your payment. If you were charged, contact support.",
+        variant: "destructive",
+      });
+    }
   };
 
   const onClose = () => {
