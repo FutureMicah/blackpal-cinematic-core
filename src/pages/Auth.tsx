@@ -96,13 +96,26 @@ const Auth = () => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const schema = isSignUp ? signUpSchema : signInSchema;
+    const parsed = schema.safeParse(isSignUp ? { email, password, fullName } : { email, password });
+    if (!parsed.success) {
+      toast({
+        title: "Invalid input",
+        description: parsed.error.issues[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       if (isSignUp) {
+        const data = parsed.data as { email: string; password: string; fullName: string };
         const { error } = await supabase.auth.signUp({
-          email,
-          password,
+          email: data.email,
+          password: data.password,
           options: {
             emailRedirectTo: `${window.location.origin}/`,
             data: { full_name: fullName },
