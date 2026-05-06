@@ -12,6 +12,7 @@ import BlackTerminal from "./pages/BlackTerminal";
 import ChartPage from "./pages/ChartPage";
 import FuturesDashboard from "./pages/FuturesDashboard";
 import AdminPanel from "./pages/AdminPanel";
+import MyClaims from "./pages/MyClaims";
 
 const queryClient = new QueryClient();
 
