@@ -210,6 +210,13 @@ const BlackTerminal = () => {
         <div className="flex items-center gap-2">
           {claimBtn}
           <button
+            onClick={() => navigate("/claims")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 hover:bg-card border border-border/20 hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider transition-all"
+          >
+            <Trophy className="w-3.5 h-3.5 text-[hsl(var(--gold))]" />
+            MY CLAIMS
+          </button>
+          <button
             onClick={() => navigate("/chart")}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card/60 hover:bg-card border border-border/20 hover:border-[hsl(var(--gold)/0.4)] text-[10px] font-bold tracking-wider transition-all"
           >
