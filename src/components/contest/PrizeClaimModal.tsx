@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Trophy, Sparkles, CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { Trophy, Sparkles, CheckCircle2, XCircle, Loader2, Clock, ExternalLink, PartyPopper } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface Props {
   open: boolean;
@@ -20,15 +22,45 @@ const TIERS = [
   { tier: "TOP_50", rank: "#11–50", amount: 100, grad: "from-[hsl(var(--purple))] to-[hsl(var(--secondary))]" },
 ];
 
+interface Receipt {
+  rank: number;
+  tier: string;
+  amount: number;
+  pnl: number;
+  period: string;
+  claimed_at: string;
+}
+
+// Compute end of current ISO week (next Monday 00:00 UTC)
+const periodEnd = () => {
+  const d = new Date();
+  const day = d.getUTCDay();
+  const daysToMonday = (8 - day) % 7 || 7;
+  const end = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + daysToMonday));
+  return end;
+};
+
 export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Props) => {
   const [myRank, setMyRank] = useState<number | null>(null);
   const [myPnl, setMyPnl] = useState<number>(0);
-  const [alreadyClaimed, setAlreadyClaimed] = useState(false);
+  const [existingClaim, setExistingClaim] = useState<Receipt | null>(null);
+  const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [claiming, setClaiming] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+
+  const endsAt = useMemo(() => periodEnd(), []);
+  const isContestActive = now < endsAt.getTime();
 
   useEffect(() => {
     if (!open) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    setReceipt(null);
     (async () => {
       setLoading(true);
       const { data: { session } } = await supabase.auth.getSession();
@@ -41,11 +73,18 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
 
       const { data: claim } = await supabase
         .from("contest_claims")
-        .select("id")
+        .select("rank, prize_tier, prize_amount, claimed_at, contest_period")
         .eq("user_id", session.user.id)
         .eq("contest_period", contestPeriod)
         .maybeSingle();
-      setAlreadyClaimed(!!claim);
+      setExistingClaim(claim ? {
+        rank: claim.rank,
+        tier: claim.prize_tier,
+        amount: Number(claim.prize_amount),
+        pnl: 0,
+        period: claim.contest_period,
+        claimed_at: claim.claimed_at,
+      } : null);
       setLoading(false);
     })();
   }, [open, contestPeriod]);
@@ -64,15 +103,59 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
     setClaiming(true);
     const { data, error } = await supabase.rpc("claim_contest_prize", { p_contest_period: contestPeriod });
     setClaiming(false);
-    const result = data as { success?: boolean; error?: string; amount?: number; tier?: string } | null;
+    const result = data as any;
     if (error || !result?.success) {
-      toast.error(result?.error || error?.message || "Claim failed");
+      const code = result?.code;
+      const msg =
+        code === "contest_active" ? "Contest is still active — claims open after it ends" :
+        code === "already_claimed" ? "You've already claimed this period" :
+        code === "no_trades" ? "Place at least one trade to qualify" :
+        code === "rank_too_low" ? `Rank #${result?.rank} is outside the prize tiers` :
+        code === "unauthenticated" ? "Please sign in" :
+        result?.error || error?.message || "Claim failed";
+      toast.error(msg);
       return;
     }
-    toast.success(`🎉 Claimed ${result.amount} BTK · ${result.tier}`);
-    setAlreadyClaimed(true);
+    const r: Receipt = {
+      rank: result.rank, tier: result.tier, amount: Number(result.amount),
+      pnl: Number(result.pnl ?? 0), period: result.period, claimed_at: result.claimed_at,
+    };
+    setReceipt(r);
+    setExistingClaim(r);
+    toast.success(`🎉 Claimed ${r.amount} BTK · ${r.tier.replace("_", " ")}`);
     onClaimed?.();
   };
+
+  // Countdown timer
+  const remaining = Math.max(0, endsAt.getTime() - now);
+  const days = Math.floor(remaining / 86400000);
+  const hours = Math.floor((remaining % 86400000) / 3600000);
+  const mins = Math.floor((remaining % 3600000) / 60000);
+  const secs = Math.floor((remaining % 60000) / 1000);
+
+  const renderReceipt = (r: Receipt, justClaimed: boolean) => (
+    <div className="space-y-3">
+      <div className="rounded-xl p-4 bg-gradient-to-br from-[hsl(var(--gold)/0.12)] to-[hsl(var(--orange)/0.06)] border border-[hsl(var(--gold)/0.3)] text-center">
+        {justClaimed && <PartyPopper className="w-7 h-7 text-[hsl(var(--gold))] mx-auto mb-2" />}
+        <div className="text-[9px] tracking-[0.25em] text-muted-foreground/70 font-bold">
+          {justClaimed ? "PRIZE CLAIMED" : "ALREADY CLAIMED"}
+        </div>
+        <div className="text-3xl font-mono font-black gold-shimmer mt-1 tabular-nums">+{r.amount.toLocaleString()} BTK</div>
+        <div className="text-[10px] text-muted-foreground mt-1">{r.tier.replace("_", " ")} · Rank #{r.rank}</div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 text-[10px]">
+        <ReceiptRow label="Period" value={r.period} />
+        <ReceiptRow label="Claimed" value={format(new Date(r.claimed_at), "MMM d · HH:mm")} />
+      </div>
+      <Link
+        to="/claims"
+        onClick={onClose}
+        className="flex items-center justify-center gap-1.5 w-full h-10 rounded-xl border border-border/30 bg-card/60 hover:bg-card text-[11px] font-bold tracking-wider transition-all"
+      >
+        VIEW ALL CLAIMS <ExternalLink className="w-3 h-3" />
+      </Link>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -89,8 +172,25 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
 
         {loading ? (
           <div className="py-8 flex justify-center"><Loader2 className="w-5 h-5 animate-spin text-muted-foreground" /></div>
+        ) : receipt ? (
+          renderReceipt(receipt, true)
+        ) : existingClaim ? (
+          renderReceipt(existingClaim, false)
         ) : (
           <div className="space-y-4">
+            {/* Contest countdown / status */}
+            {isContestActive && (
+              <div className="rounded-xl p-3 bg-[hsl(var(--primary)/0.08)] border border-[hsl(var(--primary)/0.25)] flex items-center gap-3">
+                <Clock className="w-5 h-5 text-[hsl(var(--primary))]" />
+                <div className="flex-1">
+                  <div className="text-[10px] font-bold tracking-wider">CONTEST IN PROGRESS</div>
+                  <div className="text-[10px] text-muted-foreground mt-0.5 font-mono tabular-nums">
+                    Ends in {days}d {String(hours).padStart(2, "0")}h {String(mins).padStart(2, "0")}m {String(secs).padStart(2, "0")}s
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Eligibility status */}
             <div className={cn(
               "rounded-xl p-3 border flex items-center gap-3",
@@ -102,7 +202,9 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
                   {eligibleTier ? "ELIGIBLE FOR PRIZE" : myRank ? "OUTSIDE PRIZE TIER" : "NOT RANKED"}
                 </div>
                 <div className="text-[10px] text-muted-foreground mt-0.5">
-                  {myRank ? <>Rank <b className="text-foreground">#{myRank}</b> · P&L <b className={myPnl >= 0 ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--destructive))]"}>{myPnl >= 0 ? "+" : ""}{myPnl.toFixed(0)}</b></> : "Place a trade to qualify"}
+                  {myRank
+                    ? <>Rank <b className="text-foreground">#{myRank}</b> · P&L <b className={myPnl >= 0 ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--destructive))]"}>{myPnl >= 0 ? "+" : ""}{myPnl.toFixed(0)}</b></>
+                    : "Place a trade to qualify"}
                 </div>
               </div>
             </div>
@@ -132,10 +234,12 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
 
             <button
               onClick={handleClaim}
-              disabled={!eligibleTier || alreadyClaimed || claiming}
+              disabled={!eligibleTier || isContestActive || claiming}
+              aria-disabled={!eligibleTier || isContestActive || claiming}
+              title={isContestActive ? "Claims open after the contest ends" : !eligibleTier ? "You're not in a prize tier" : ""}
               className={cn(
                 "w-full h-11 rounded-xl font-bold text-sm tracking-wider transition-all",
-                alreadyClaimed
+                isContestActive
                   ? "bg-muted/30 text-muted-foreground cursor-not-allowed"
                   : eligibleTier
                     ? "bg-gradient-to-r from-[hsl(var(--gold))] to-[hsl(var(--orange))] text-background hover:shadow-[0_0_24px_hsl(var(--gold)/0.5)] active:scale-[0.98]"
@@ -143,7 +247,7 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
               )}
             >
               {claiming ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> :
-                alreadyClaimed ? "ALREADY CLAIMED" :
+                isContestActive ? "CONTEST ACTIVE — CLAIM LATER" :
                 eligibleTier ? `CLAIM ${eligibleTier.amount} BTK` :
                 "NOT ELIGIBLE"}
             </button>
@@ -153,3 +257,10 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
     </Dialog>
   );
 };
+
+const ReceiptRow = ({ label, value }: { label: string; value: string }) => (
+  <div className="rounded-lg p-2 bg-muted/15 border border-border/10">
+    <div className="text-[9px] text-muted-foreground/60 tracking-wider">{label.toUpperCase()}</div>
+    <div className="font-mono font-bold mt-0.5 truncate">{value}</div>
+  </div>
+);

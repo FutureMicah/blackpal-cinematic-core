@@ -58,6 +58,8 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const bSym = useMemo(() => symbolToBinance(symbol), [symbol]);
   const cacheKey = `${CACHE_PREFIX}${bSym}:${tf}`;
 
+  const [retryNonce, setRetryNonce] = useState(0);
+
   useEffect(() => {
     setLoadError(null);
     setTransport("live");
@@ -65,42 +67,52 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
     if (cached.length) setCandles(cached);
 
     let cancelled = false;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
+
+    const fetchOnce = async (endpoint: string, attempt: number): Promise<Candle[] | null> => {
+      const controller = new AbortController();
+      const timeoutMs = 6000 + attempt * 3000;
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        const res = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal });
+        clearTimeout(timer);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (!Array.isArray(data) || data.length === 0) throw new Error("EMPTY");
+        return data.map((d: any[]) => ({
+          t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]),
+        }));
+      } catch {
+        clearTimeout(timer);
+        return null;
+      }
+    };
 
     const fetchCandles = async () => {
-      for (const endpoint of REST_ENDPOINTS) {
-        try {
-          const response = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal });
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          const data = await response.json();
-          if (!Array.isArray(data) || data.length === 0) throw new Error("EMPTY");
+      // 3 attempts, alternating endpoints
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+        for (const endpoint of REST_ENDPOINTS) {
           if (cancelled) return;
-          const parsed = data.map((d: any[]) => ({
-            t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]),
-          }));
-          setCandles(parsed);
-          saveCachedCandles(cacheKey, parsed);
-          setLoadError(null);
-          return;
-        } catch (error: any) {
-          if (controller.signal.aborted || error?.name === "AbortError") break;
+          const result = await fetchOnce(endpoint, attempt);
+          if (result) {
+            setCandles(result);
+            saveCachedCandles(cacheKey, result);
+            setLoadError(null);
+            setTransport("live");
+            return;
+          }
         }
+        // backoff between attempts
+        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
       }
-
       if (!cancelled) {
         setTransport("fallback");
-        setLoadError(cached.length ? "Live feed delayed — showing cached data" : "Market data temporarily unavailable");
+        setLoadError(cached.length ? "Live feed delayed — showing cached data" : "Connection timeout — tap to retry");
       }
     };
 
     void fetchCandles();
-    return () => {
-      cancelled = true;
-      clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [bSym, tf, cacheKey]);
+    return () => { cancelled = true; };
+  }, [bSym, tf, cacheKey, retryNonce]);
 
   useEffect(() => {
     let tickerWs: WebSocket | null = null;
@@ -302,16 +314,33 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       <div className="flex-1 relative min-h-0">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-label={`${symbol} price chart`} />
         {candles.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-muted-foreground/60 gap-1.5">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] gap-2">
             {loadError ? (
-              <span className="text-[hsl(var(--gold))]">⚠ {loadError}</span>
-            ) : (
               <>
+                <span className="text-[hsl(var(--gold))]">⚠ {loadError}</span>
+                <button
+                  onClick={() => setRetryNonce((n) => n + 1)}
+                  className="px-3 py-1 rounded-lg border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.08)] text-[hsl(var(--gold))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.15)] transition-all"
+                >
+                  RETRY
+                </button>
+              </>
+            ) : (
+              <div className="flex items-center gap-1.5 text-muted-foreground/60">
                 <div className="w-3 h-3 border border-[hsl(var(--gold)/0.3)] border-t-[hsl(var(--gold))] rounded-full animate-spin" />
                 Loading chart…
-              </>
+              </div>
             )}
           </div>
+        )}
+        {candles.length > 0 && loadError && (
+          <button
+            onClick={() => setRetryNonce((n) => n + 1)}
+            className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-[hsl(var(--gold)/0.12)] border border-[hsl(var(--gold)/0.3)] text-[hsl(var(--gold))] text-[8px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.2)]"
+            aria-label="Retry chart connection"
+          >
+            ⟳ RETRY
+          </button>
         )}
       </div>
     </div>

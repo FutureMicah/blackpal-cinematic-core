@@ -12,6 +12,7 @@ import BlackTerminal from "./pages/BlackTerminal";
 import ChartPage from "./pages/ChartPage";
 import FuturesDashboard from "./pages/FuturesDashboard";
 import AdminPanel from "./pages/AdminPanel";
+import MyClaims from "./pages/MyClaims";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
         <Route path="/settings" element={<Settings />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/claims" element={<MyClaims />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </BrowserRouter>

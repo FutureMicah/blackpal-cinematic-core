@@ -1,0 +1,49 @@
+name: Supabase Security Linter
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  security-lint:
+    name: Block on CRITICAL Supabase linter warnings
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Run Supabase database linter
+        id: lint
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          set -e
+          echo "Running Supabase security linter…"
+          supabase login --token "$SUPABASE_ACCESS_TOKEN" >/dev/null 2>&1 || true
+          # Output JSON so we can grep for severity reliably
+          OUTPUT=$(supabase db lint --linked --project-ref "$SUPABASE_PROJECT_REF" --output json 2>&1 || true)
+          echo "$OUTPUT" > lint-report.json
+          echo "----- Supabase linter report -----"
+          echo "$OUTPUT"
+          echo "-----------------------------------"
+          # Fail the deployment if any CRITICAL / ERROR-level finding is present
+          if echo "$OUTPUT" | grep -Eiq '"level"\s*:\s*"(error|critical)"|^\s*ERROR|CRITICAL'; then
+            echo "::error::Supabase linter reported CRITICAL warnings — blocking deploy."
+            exit 1
+          fi
+          echo "✅ No CRITICAL Supabase linter warnings."
+
+      - name: Upload linter report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-lint-report
+          path: lint-report.json
