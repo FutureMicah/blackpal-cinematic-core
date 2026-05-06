@@ -109,6 +109,13 @@ const BlackTerminal = () => {
           </div>
           <div className="flex items-center gap-2">
             <button
+              onClick={() => navigate("/claims")}
+              aria-label="My prize claims"
+              className="p-1.5 rounded-lg bg-card/60 border border-border/20 text-muted-foreground active:scale-90 transition-transform"
+            >
+              <Trophy className="w-3.5 h-3.5" />
+            </button>
+            <button
               onClick={() => setClaimOpen(true)}
               aria-label="Claim prize"
               className="p-1.5 rounded-lg bg-[hsl(var(--gold)/0.15)] text-[hsl(var(--gold))] active:scale-90 transition-transform"
