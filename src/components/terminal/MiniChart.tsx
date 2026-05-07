@@ -315,7 +315,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/15 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
           <Icon3D name="candlestick" size={14} />
-          <span className="text-sm font-mono font-bold text-foreground number-mono truncate">{symbol}</span>
+          <span className="text-sm font-mono font-bold text-foreground number-mono truncate">{display}</span>
           <span className={cn(
             "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded number-mono",
             isPositive ? "text-bid bg-bid/10" : "text-ask bg-ask/10"
