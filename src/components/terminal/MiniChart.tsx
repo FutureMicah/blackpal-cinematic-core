@@ -60,12 +60,20 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  const bSym = useMemo(() => symbolToBinance(symbol), [symbol]);
-  const cacheKey = `${CACHE_PREFIX}${bSym}:${tf}`;
+  const bSym = useMemo(() => toBinanceSymbol(symbol), [symbol]);
+  const display = useMemo(() => prettySymbol(symbol), [symbol]);
+  const cacheKey = `${CACHE_PREFIX}${bSym ?? "NA"}:${tf}`;
 
   const [retryNonce, setRetryNonce] = useState(0);
+  const wsHealthyRef = useRef(false);
 
+  // REST fetch with exponential backoff and endpoint rotation
   useEffect(() => {
+    if (!bSym) {
+      setLoadError(`${display} is not available on Binance`);
+      setCandles([]);
+      return;
+    }
     setLoadError(null);
     setTransport("live");
     const cached = typeof window !== "undefined" ? loadCachedCandles(cacheKey) : [];
@@ -75,7 +83,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
 
     const fetchOnce = async (endpoint: string, attempt: number): Promise<Candle[] | null> => {
       const controller = new AbortController();
-      const timeoutMs = 6000 + attempt * 3000;
+      const timeoutMs = 5000 + attempt * 2500;
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
         const res = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal });
@@ -86,15 +94,16 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
         return data.map((d: any[]) => ({
           t: d[0], o: parseFloat(d[1]), h: parseFloat(d[2]), l: parseFloat(d[3]), c: parseFloat(d[4]),
         }));
-      } catch {
+      } catch (err) {
         clearTimeout(timer);
+        logHealth("rest_fail", { endpoint, symbol: bSym, attempt, err: String(err) });
         return null;
       }
     };
 
     const fetchCandles = async () => {
-      // 3 attempts, alternating endpoints
-      for (let attempt = 0; attempt < 3 && !cancelled; attempt++) {
+      // 4 attempts × 2 endpoints, exponential backoff between attempts
+      for (let attempt = 0; attempt < 4 && !cancelled; attempt++) {
         for (const endpoint of REST_ENDPOINTS) {
           if (cancelled) return;
           const result = await fetchOnce(endpoint, attempt);
@@ -103,32 +112,56 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             saveCachedCandles(cacheKey, result);
             setLoadError(null);
             setTransport("live");
+            logHealth("rest_ok", { endpoint, symbol: bSym, attempt });
             return;
           }
         }
-        // backoff between attempts
-        await new Promise((r) => setTimeout(r, 800 * (attempt + 1)));
+        // Exponential backoff with jitter: 600, 1200, 2400, 4800ms
+        const delay = 600 * Math.pow(2, attempt) + Math.random() * 250;
+        await new Promise((r) => setTimeout(r, delay));
       }
       if (!cancelled) {
-        setTransport("fallback");
-        setLoadError(cached.length ? "Live feed delayed — showing cached data" : "Connection timeout — tap to retry");
+        setTransport(wsHealthyRef.current ? "live" : "fallback");
+        setLoadError(
+          cached.length
+            ? "Live feed delayed — showing cached data"
+            : "Couldn't reach Binance — tap retry"
+        );
       }
     };
 
     void fetchCandles();
     return () => { cancelled = true; };
-  }, [bSym, tf, cacheKey, retryNonce]);
+  }, [bSym, tf, cacheKey, retryNonce, display]);
 
+  // WebSocket streaming with auto-reconnect and health tracking
   useEffect(() => {
+    if (!bSym) return;
     let tickerWs: WebSocket | null = null;
     let klineWs: WebSocket | null = null;
     let reconnectTimer: number | null = null;
+    let reconnectAttempts = 0;
     let isCancelled = false;
+
+    const scheduleReconnect = () => {
+      if (isCancelled || reconnectTimer !== null) return;
+      const delay = Math.min(15000, 1500 * Math.pow(1.6, reconnectAttempts++));
+      logHealth("ws_reconnect_scheduled", { symbol: bSym, delay, attempts: reconnectAttempts });
+      reconnectTimer = window.setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, delay);
+    };
 
     const connect = () => {
       if (isCancelled) return;
 
       tickerWs = new WebSocket(`${WS_BASE}/${bSym.toLowerCase()}@ticker`);
+      tickerWs.onopen = () => {
+        wsHealthyRef.current = true;
+        reconnectAttempts = 0;
+        logHealth("ws_open", { stream: "ticker", symbol: bSym });
+      };
       tickerWs.onmessage = (e) => {
         try {
           const d = JSON.parse(e.data);
@@ -138,17 +171,23 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           setLow24h(parseFloat(d.l));
           setVolume24h(parseFloat(d.q));
           setTransport("live");
-          if (loadError === "Live feed delayed — showing cached data") setLoadError(null);
+          setLoadError((prev) => (prev === "Live feed delayed — showing cached data" ? null : prev));
         } catch {
           // ignore
         }
       };
-      tickerWs.onerror = () => setTransport("fallback");
+      tickerWs.onerror = () => {
+        wsHealthyRef.current = false;
+        setTransport("fallback");
+        logHealth("ws_error", { stream: "ticker", symbol: bSym });
+      };
       tickerWs.onclose = () => {
-        if (!isCancelled) reconnectTimer = window.setTimeout(connect, 2500);
+        wsHealthyRef.current = false;
+        scheduleReconnect();
       };
 
       klineWs = new WebSocket(`${WS_BASE}/${bSym.toLowerCase()}@kline_${tf}`);
+      klineWs.onopen = () => logHealth("ws_open", { stream: "kline", symbol: bSym, tf });
       klineWs.onmessage = (e) => {
         try {
           const d = JSON.parse(e.data);
@@ -174,20 +213,21 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           // ignore
         }
       };
-      klineWs.onerror = () => setTransport("fallback");
-      klineWs.onclose = () => {
-        if (!isCancelled && reconnectTimer === null) reconnectTimer = window.setTimeout(connect, 2500);
+      klineWs.onerror = () => {
+        setTransport("fallback");
+        logHealth("ws_error", { stream: "kline", symbol: bSym });
       };
+      klineWs.onclose = () => scheduleReconnect();
     };
 
     connect();
     return () => {
       isCancelled = true;
       if (reconnectTimer) window.clearTimeout(reconnectTimer);
-      try { tickerWs?.close(); } catch {}
-      try { klineWs?.close(); } catch {}
+      try { tickerWs?.close(); } catch { /* noop */ }
+      try { klineWs?.close(); } catch { /* noop */ }
     };
-  }, [bSym, tf, cacheKey, loadError]);
+  }, [bSym, tf, cacheKey]);
 
   useEffect(() => {
     const draw = () => {
