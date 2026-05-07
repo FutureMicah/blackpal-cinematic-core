@@ -14,20 +14,42 @@ interface Asset {
 }
 
 const ASSETS: Asset[] = [
+  // Crypto
   { symbol: "BTC/USDT", name: "Bitcoin", price: "67,432.50", change: 2.34, icon: "🟡", category: "crypto", volume: "2.1B" },
   { symbol: "ETH/USDT", name: "Ethereum", price: "3,521.80", change: -0.87, icon: "🔵", category: "crypto", volume: "980M" },
   { symbol: "SOL/USDT", name: "Solana", price: "178.45", change: 5.12, icon: "🟣", category: "crypto", volume: "540M" },
-  { symbol: "PEPE/USDT", name: "Pepe", price: "0.00001234", change: 12.5, icon: "🐸", category: "crypto", volume: "320M" },
-  { symbol: "DOGE/USDT", name: "Dogecoin", price: "0.1542", change: -1.2, icon: "🐶", category: "crypto", volume: "210M" },
+  { symbol: "BNB/USDT", name: "BNB", price: "612.30", change: 1.04, icon: "🟨", category: "crypto", volume: "410M" },
   { symbol: "XRP/USDT", name: "Ripple", price: "0.6234", change: 0.45, icon: "⚪", category: "crypto", volume: "180M" },
+  { symbol: "ADA/USDT", name: "Cardano", price: "0.4321", change: -0.62, icon: "🔷", category: "crypto", volume: "150M" },
+  { symbol: "AVAX/USDT", name: "Avalanche", price: "34.20", change: 3.21, icon: "🔺", category: "crypto", volume: "120M" },
+  { symbol: "LINK/USDT", name: "Chainlink", price: "14.85", change: 1.87, icon: "🔗", category: "crypto", volume: "110M" },
+  { symbol: "DOT/USDT", name: "Polkadot", price: "6.42", change: -1.04, icon: "⚫", category: "crypto", volume: "95M" },
+  { symbol: "MATIC/USDT", name: "Polygon", price: "0.5423", change: 2.10, icon: "🟪", category: "crypto", volume: "90M" },
+  { symbol: "DOGE/USDT", name: "Dogecoin", price: "0.1542", change: -1.2, icon: "🐶", category: "crypto", volume: "210M" },
+  { symbol: "PEPE/USDT", name: "Pepe", price: "0.00001234", change: 12.5, icon: "🐸", category: "crypto", volume: "320M" },
+  { symbol: "SHIB/USDT", name: "Shiba Inu", price: "0.0000234", change: 4.2, icon: "🐕", category: "crypto", volume: "180M" },
+  { symbol: "TON/USDT", name: "Toncoin", price: "5.42", change: 2.8, icon: "💎", category: "crypto", volume: "85M" },
+  // Forex majors
   { symbol: "EUR/USD", name: "Euro/Dollar", price: "1.0876", change: 0.12, icon: "🇪🇺", category: "forex" },
-  { symbol: "GBP/JPY", name: "Pound/Yen", price: "198.432", change: -0.34, icon: "🇬🇧", category: "forex" },
-  { symbol: "USD/JPY", name: "Dollar/Yen", price: "154.230", change: 0.67, icon: "🇺🇸", category: "forex" },
   { symbol: "GBP/USD", name: "Pound/Dollar", price: "1.2654", change: -0.21, icon: "🇬🇧", category: "forex" },
+  { symbol: "USD/JPY", name: "Dollar/Yen", price: "154.230", change: 0.67, icon: "🇺🇸", category: "forex" },
+  { symbol: "AUD/USD", name: "Aussie/Dollar", price: "0.6612", change: -0.18, icon: "🇦🇺", category: "forex" },
+  { symbol: "USD/CAD", name: "Dollar/Loonie", price: "1.3654", change: 0.24, icon: "🇨🇦", category: "forex" },
+  { symbol: "USD/CHF", name: "Dollar/Franc", price: "0.8821", change: -0.09, icon: "🇨🇭", category: "forex" },
+  { symbol: "NZD/USD", name: "Kiwi/Dollar", price: "0.6042", change: 0.31, icon: "🇳🇿", category: "forex" },
+  // Forex crosses
+  { symbol: "GBP/JPY", name: "Pound/Yen", price: "198.432", change: -0.34, icon: "🇬🇧", category: "forex" },
+  { symbol: "EUR/JPY", name: "Euro/Yen", price: "167.812", change: 0.42, icon: "🇪🇺", category: "forex" },
+  { symbol: "EUR/GBP", name: "Euro/Pound", price: "0.8593", change: 0.15, icon: "🇪🇺", category: "forex" },
+  // Commodities
   { symbol: "XAU/USD", name: "Gold", price: "2,412.50", change: 0.89, icon: "🟡", category: "energy" },
+  { symbol: "XAG/USD", name: "Silver", price: "31.42", change: 1.24, icon: "⚪", category: "energy" },
   { symbol: "WTI/USD", name: "Crude Oil", price: "78.34", change: -1.56, icon: "🛢️", category: "energy" },
+  // Indices
   { symbol: "US30", name: "Dow Jones", price: "39,872", change: 0.45, icon: "📊", category: "indices" },
   { symbol: "NAS100", name: "Nasdaq", price: "17,654", change: 1.23, icon: "📈", category: "indices" },
+  { symbol: "SPX500", name: "S&P 500", price: "5,432", change: 0.67, icon: "📉", category: "indices" },
+  { symbol: "GER40", name: "DAX", price: "18,210", change: 0.34, icon: "🇩🇪", category: "indices" },
 ];
 
 const CATEGORIES = [
