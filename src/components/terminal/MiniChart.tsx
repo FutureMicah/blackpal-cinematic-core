@@ -15,12 +15,11 @@ const REST_ENDPOINTS = [
   "https://data-api.binance.vision/api/v3/klines",
   "https://api.binance.com/api/v3/klines",
 ] as const;
-const CACHE_PREFIX = "mini-chart-cache:";
-const WS_BASE = "wss://stream.binance.com/ws";
-const REST_ENDPOINTS = [
-  "https://data-api.binance.vision/api/v3/klines",
-  "https://api.binance.com/api/v3/klines",
-] as const;
+
+const logHealth = (event: string, detail?: Record<string, unknown>) => {
+  // eslint-disable-next-line no-console
+  console.info(`[chart-health] ${event}`, detail ?? {});
+};
 
 const TIMEFRAMES = [
   { label: "1m", interval: "1m" },
