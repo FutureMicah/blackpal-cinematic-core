@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
+import { toBinanceSymbol, prettySymbol } from "@/lib/symbols";
 
 interface MiniChartProps {
   symbol: string;
@@ -8,12 +9,12 @@ interface MiniChartProps {
 
 interface Candle { o: number; h: number; l: number; c: number; t: number; }
 
-const symbolToBinance = (s: string) => {
-  const up = s.replace("/", "").toUpperCase();
-  // Binance uses USDT, not USD, for crypto pairs
-  if (/^(BTC|ETH|SOL|XRP|DOGE|PEPE|BNB|ADA|AVAX|MATIC|LINK|DOT)USD$/.test(up)) return up + "T";
-  return up;
-};
+const CACHE_PREFIX = "mini-chart-cache:";
+const WS_BASE = "wss://stream.binance.com/ws";
+const REST_ENDPOINTS = [
+  "https://data-api.binance.vision/api/v3/klines",
+  "https://api.binance.com/api/v3/klines",
+] as const;
 const CACHE_PREFIX = "mini-chart-cache:";
 const WS_BASE = "wss://stream.binance.com/ws";
 const REST_ENDPOINTS = [
