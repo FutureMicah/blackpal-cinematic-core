@@ -1,19 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { TrendingUp, TrendingDown, Minus, Brain, Crosshair, Layers } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Brain, Crosshair, Layers, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toTradingViewSymbol } from "@/lib/symbols";
 
 interface NeuralChartProps {
   symbol: string;
 }
-
-const TV_SYMBOL_MAP: Record<string, string> = {
-  "BTC/USDT": "BINANCE:BTCUSDT", "BTC/USD": "BINANCE:BTCUSDT", "BTCUSD": "BINANCE:BTCUSDT", "BTCUSDT": "BINANCE:BTCUSDT",
-  "ETH/USDT": "BINANCE:ETHUSDT", "ETH/USD": "BINANCE:ETHUSDT",
-  "SOL/USDT": "BINANCE:SOLUSDT", "SOL/USD": "BINANCE:SOLUSDT",
-  "PEPE/USDT": "BINANCE:PEPEUSDT", "DOGE/USDT": "BINANCE:DOGEUSDT", "XRP/USDT": "BINANCE:XRPUSDT",
-  "EUR/USD": "FX:EURUSD", "GBP/JPY": "FX:GBPJPY", "USD/JPY": "FX:USDJPY", "GBP/USD": "FX:GBPUSD",
-  "XAU/USD": "TVC:GOLD", "WTI/USD": "TVC:USOIL", "US30": "TVC:DJI", "NAS100": "NASDAQ:NDX",
-};
 
 export const NeuralChart = ({ symbol }: NeuralChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
