@@ -11,16 +11,20 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<HTMLDivElement | null>(null);
   const [chartLoaded, setChartLoaded] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     setChartLoaded(false);
+    setLoadFailed(false);
 
-    // Hard fallback: dismiss loading after 8s no matter what so user isn't stuck
-    const fallback = setTimeout(() => setChartLoaded(true), 8000);
+    // Hard fallback: surface failure UI after 12s so user can retry
+    const fallback = setTimeout(() => {
+      if (!chartLoaded) setLoadFailed(true);
+    }, 12000);
 
-    // Remove previous widget wrapper if it exists
     if (widgetRef.current && widgetRef.current.parentNode) {
       widgetRef.current.parentNode.removeChild(widgetRef.current);
     }
@@ -37,13 +41,15 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
     tvDiv.style.height = "100%";
     wrapper.appendChild(tvDiv);
 
+    const tvSymbol = toTradingViewSymbol(symbol);
+
     const initWidget = () => {
       if (!containerRef.current || !widgetRef.current) return;
       try {
         // @ts-ignore
         new TradingView.widget({
           autosize: true,
-          symbol: TV_SYMBOL_MAP[symbol] || "BINANCE:BTCUSDT",
+          symbol: tvSymbol,
           interval: "60",
           timezone: "Etc/UTC",
           theme: "dark",
@@ -65,13 +71,13 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
           calendar: false,
         });
         setChartLoaded(true);
+        setLoadFailed(false);
       } catch (e) {
-        console.warn("TradingView widget error:", e);
-        setChartLoaded(true); // dismiss loader on error too
+        console.warn("[chart-health] tradingview_init_error", { symbol: tvSymbol, err: String(e) });
+        setLoadFailed(true);
       }
     };
 
-    // If the script is already on the page (re-mount), init immediately
     // @ts-ignore
     if (typeof TradingView !== "undefined" && (window as any).TradingView?.widget) {
       initWidget();
@@ -84,7 +90,10 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
         script.src = "https://s3.tradingview.com/tv.js";
         script.async = true;
         script.onload = initWidget;
-        script.onerror = () => setChartLoaded(true);
+        script.onerror = () => {
+          console.warn("[chart-health] tradingview_script_failed", { symbol: tvSymbol });
+          setLoadFailed(true);
+        };
         document.head.appendChild(script);
       }
     }
@@ -92,13 +101,12 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
     return () => {
       clearTimeout(fallback);
       if (widgetRef.current && widgetRef.current.parentNode) {
-        try {
-          widgetRef.current.parentNode.removeChild(widgetRef.current);
-        } catch (e) { /* already removed */ }
+        try { widgetRef.current.parentNode.removeChild(widgetRef.current); } catch { /* noop */ }
       }
       widgetRef.current = null;
     };
-  }, [symbol]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, retryNonce]);
 
   const trend = symbol.includes("BTC") ? "UPTREND" : symbol.includes("EUR") ? "RANGING" : "DOWNTREND";
   const confidence = symbol.includes("BTC") ? 82 : symbol.includes("EUR") ? 54 : 67;
@@ -106,35 +114,45 @@ export const NeuralChart = ({ symbol }: NeuralChartProps) => {
 
   return (
     <div className="h-full flex flex-col bg-background/50 relative">
-      {/* AI Overlay */}
       <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 border-b border-border/15 bg-muted/10 backdrop-blur-sm z-10 overflow-x-auto scrollbar-none">
         <Brain className="w-3.5 h-3.5 text-[hsl(var(--purple))] shrink-0" />
         <span className="text-[9px] font-bold tracking-[0.15em] text-muted-foreground/70 shrink-0 hidden sm:inline">NEURAL</span>
         <div className="flex-1" />
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          <OverlayStat
-            label="TREND"
-            value={trend}
+          <OverlayStat label="TREND" value={trend}
             icon={trend === "UPTREND" ? TrendingUp : trend === "DOWNTREND" ? TrendingDown : Minus}
-            color={trend === "UPTREND" ? "text-accent" : trend === "DOWNTREND" ? "text-destructive" : "text-[hsl(var(--gold))]"}
-          />
+            color={trend === "UPTREND" ? "text-accent" : trend === "DOWNTREND" ? "text-destructive" : "text-[hsl(var(--gold))]"} />
           <OverlayStat label="ENTRY" value={entryZone} icon={Crosshair} color="text-primary" />
-          <OverlayStat
-            label="CONF"
-            value={`${confidence}%`}
-            icon={Layers}
-            color={confidence >= 70 ? "text-accent" : confidence >= 50 ? "text-[hsl(var(--gold))]" : "text-destructive"}
-          />
+          <OverlayStat label="CONF" value={`${confidence}%`} icon={Layers}
+            color={confidence >= 70 ? "text-accent" : confidence >= 50 ? "text-[hsl(var(--gold))]" : "text-destructive"} />
         </div>
       </div>
 
-      {/* Chart */}
       <div ref={containerRef} className="flex-1 relative min-h-0">
-        {!chartLoaded && (
+        {!chartLoaded && !loadFailed && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-20">
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-              <span className="text-[10px] text-muted-foreground">Loading {symbol}...</span>
+              <span className="text-[10px] text-muted-foreground">Loading {symbol}…</span>
+            </div>
+          </div>
+        )}
+        {loadFailed && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/90 z-30 p-4">
+            <div className="flex flex-col items-center gap-3 text-center max-w-[260px]">
+              <div className="w-12 h-12 rounded-2xl bg-[hsl(var(--gold)/0.1)] border border-[hsl(var(--gold)/0.3)] flex items-center justify-center">
+                <RefreshCw className="w-5 h-5 text-[hsl(var(--gold))]" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-foreground">Chart took too long to load</p>
+                <p className="text-[10px] text-muted-foreground">TradingView may be blocked or slow. Try again or check your network.</p>
+              </div>
+              <button
+                onClick={() => setRetryNonce(n => n + 1)}
+                className="px-4 py-1.5 rounded-lg border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.1)] text-[hsl(var(--gold))] text-[10px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.2)] transition-all flex items-center gap-1.5"
+              >
+                <RefreshCw className="w-3 h-3" /> RETRY
+              </button>
             </div>
           </div>
         )}
