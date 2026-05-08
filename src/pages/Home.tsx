@@ -167,7 +167,7 @@ const Home = () => {
           </div>
           <div className="space-y-3">
             {tokenList.map(([sym, bal], i) => (
-              <TokenCard key={sym} symbol={sym} balance={Number(bal)} accent={TOKEN_GRADIENT[sym] || (i % 2 ? "hero-gradient-violet" : "hero-gradient-blue")} />
+              <TokenCard key={String(sym)} symbol={String(sym)} balance={Number(bal)} accent={TOKEN_GRADIENT[String(sym)] || (i % 2 ? "hero-gradient-violet" : "hero-gradient-blue")} />
             ))}
           </div>
         </section>
