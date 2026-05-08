@@ -13,6 +13,7 @@ import ChartPage from "./pages/ChartPage";
 import FuturesDashboard from "./pages/FuturesDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import MyClaims from "./pages/MyClaims";
+import Home from "./pages/Home";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +24,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
       <Routes>
-        <Route path="/" element={<BlackTerminal />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/terminal" element={<BlackTerminal />} />
         <Route path="/chart" element={<ChartPage />} />
         <Route path="/futures" element={<FuturesDashboard />} />
         <Route path="/auth" element={<Auth />} />
