@@ -73,31 +73,33 @@ const MyClaims = () => {
   useEffect(() => { setPage(1); }, [tierFilter, search]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="px-4 py-3 border-b border-border/15 bg-card/40 backdrop-blur-xl flex items-center gap-3">
-        <button onClick={() => navigate(-1)} aria-label="Back" className="p-1.5 rounded-lg hover:bg-muted/30 transition-colors">
+    <div className="min-h-[100dvh]">
+      <header className="px-4 py-3 flex items-center gap-3 sticky top-0 z-30 backdrop-blur-xl bg-background/30">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="w-10 h-10 rounded-full glass-pill flex items-center justify-center">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex items-center gap-2 flex-1">
           <Trophy className="w-4 h-4 text-[hsl(var(--gold))]" />
-          <h1 className="text-sm font-black tracking-[0.2em] gold-shimmer">MY PRIZE CLAIMS</h1>
+          <h1 className="text-[15px] font-bold tracking-tight">My Prize Claims</h1>
         </div>
         <button
           onClick={() => load(true)}
           disabled={refreshing}
           aria-label="Refresh claims"
-          className="p-1.5 rounded-lg hover:bg-muted/30 transition-colors disabled:opacity-50"
-          title="Refresh"
+          className="w-10 h-10 rounded-full glass-pill flex items-center justify-center disabled:opacity-50"
         >
           <RefreshCw className={cn("w-4 h-4", refreshing && "animate-spin")} />
         </button>
       </header>
 
-      <main className="max-w-3xl mx-auto p-4 space-y-4">
-        <div className="rounded-2xl border border-[hsl(var(--gold)/0.25)] bg-gradient-to-r from-[hsl(var(--gold)/0.08)] to-transparent p-4">
-          <div className="text-[10px] tracking-[0.2em] text-muted-foreground/70 font-bold">TOTAL EARNED</div>
-          <div className="text-3xl font-mono font-black gold-shimmer mt-1 tabular-nums">{total.toLocaleString()} BTK</div>
-          <div className="text-[10px] text-muted-foreground/60 mt-1">{claims.length} claim{claims.length === 1 ? "" : "s"} all-time</div>
+      <main className="max-w-md mx-auto p-4 pb-28 space-y-4">
+        <div className="relative rounded-3xl overflow-hidden hero-gradient-violet p-5 text-white">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,white,transparent_60%)] opacity-10" />
+          <div className="relative">
+            <div className="text-[10px] tracking-[0.22em] font-bold opacity-80">TOTAL EARNED</div>
+            <div className="text-[34px] font-black mt-1 tabular-nums leading-none">{total.toLocaleString()} <span className="text-[16px] opacity-80">BTK</span></div>
+            <div className="text-[11px] opacity-75 mt-2">{claims.length} claim{claims.length === 1 ? "" : "s"} all-time</div>
+          </div>
         </div>
 
         {/* Filters */}
