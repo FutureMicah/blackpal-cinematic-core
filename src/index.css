@@ -8,24 +8,24 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* The Black Universe - Core colors */
-    --background: 240 20% 4%;
+    /* Deep midnight base — softer than pure black, like the reference */
+    --background: 230 30% 6%;
     --foreground: 0 0% 98%;
 
-    /* Card & surfaces - Ultra glassmorphic */
-    --card: 240 15% 8%;
+    /* Card & surfaces — soft glass over midnight */
+    --card: 232 25% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 15% 8%;
+    --popover: 232 25% 10%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary - Electric cyan */
-    --primary: 188 100% 50%;
-    --primary-foreground: 240 20% 4%;
+    /* Primary — electric indigo/blue (the bright button color in ref) */
+    --primary: 240 100% 65%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Neon pink */
-    --secondary: 330 100% 50%;
-    --secondary-foreground: 0 0% 98%;
+    /* Secondary — coral pink (the right card in ref) */
+    --secondary: 350 85% 60%;
+    --secondary-foreground: 0 0% 100%;
 
     /* Muted - Subtle dark blue */
     --muted: 240 15% 12%;
