@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Trophy, Sparkles, CheckCircle2, XCircle, Loader2, Clock, ExternalLink, PartyPopper } from "lucide-react";
+import { Trophy, Sparkles, CheckCircle2, XCircle, Loader2, Clock, ExternalLink, PartyPopper, Printer } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { openReceiptPrint } from "@/lib/printReceipt";
 
 interface Props {
   open: boolean;
@@ -147,13 +148,21 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
         <ReceiptRow label="Period" value={r.period} />
         <ReceiptRow label="Claimed" value={format(new Date(r.claimed_at), "MMM d · HH:mm")} />
       </div>
-      <Link
-        to="/claims"
-        onClick={onClose}
-        className="flex items-center justify-center gap-1.5 w-full h-10 rounded-xl border border-border/30 bg-card/60 hover:bg-card text-[11px] font-bold tracking-wider transition-all"
-      >
-        VIEW ALL CLAIMS <ExternalLink className="w-3 h-3" />
-      </Link>
+      <div className="grid grid-cols-2 gap-2">
+        <button
+          onClick={() => openReceiptPrint(r)}
+          className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.08)] text-[hsl(var(--gold))] text-[11px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.15)] transition-all"
+        >
+          <Printer className="w-3 h-3" /> RECEIPT
+        </button>
+        <Link
+          to="/claims"
+          onClick={onClose}
+          className="flex items-center justify-center gap-1.5 h-10 rounded-xl border border-border/30 bg-card/60 hover:bg-card text-[11px] font-bold tracking-wider transition-all"
+        >
+          ALL CLAIMS <ExternalLink className="w-3 h-3" />
+        </Link>
+      </div>
     </div>
   );
 
