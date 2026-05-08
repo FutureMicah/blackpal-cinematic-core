@@ -27,10 +27,10 @@ export const AppShell = ({ children, title, showHeader = true, showNav = true }:
     (async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const { data } = await supabase.from("profiles").select("display_name, avatar_url").eq("user_id", session.user.id).maybeSingle();
+      const { data } = await (supabase.from("profiles") as any).select("display_name, avatar_url").eq("user_id", session.user.id).maybeSingle();
       setUser({
-        name: (data as any)?.display_name || session.user.email?.split("@")[0] || "Trader",
-        avatar: (data as any)?.avatar_url || null,
+        name: data?.display_name || session.user.email?.split("@")[0] || "Trader",
+        avatar: data?.avatar_url || null,
       });
     })();
   }, []);
