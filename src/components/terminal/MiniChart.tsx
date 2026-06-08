@@ -56,7 +56,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [low24h, setLow24h] = useState(0);
   const [volume24h, setVolume24h] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [transport, setTransport] = useState<"live" | "fallback">("live");
+  const [transport, setTransport] = useState<"ws" | "rest" | "fallback">("rest");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 

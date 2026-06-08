@@ -3,18 +3,32 @@
  * Handles USD/USDT aliasing and various input formats (BTCUSD, BTC/USD, BTC-USDT, etc.)
  */
 
-const STABLECOIN_QUOTES = ["USDT", "USDC", "BUSD", "USD"];
+const STABLECOIN_QUOTES = ["USDT", "USDC", "BUSD", "FDUSD", "TUSD", "USD"];
 
-const CRYPTO_BASES = new Set([
-  "BTC", "ETH", "SOL", "XRP", "DOGE", "PEPE", "BNB", "ADA", "AVAX", "MATIC",
-  "LINK", "DOT", "LTC", "TRX", "SHIB", "ATOM", "NEAR", "APT", "ARB", "OP",
-  "INJ", "SUI", "TIA", "RNDR", "FIL", "ICP", "UNI", "AAVE", "MKR", "TON",
+export const CRYPTO_BASES = new Set([
+  // Majors
+  "BTC", "ETH", "BNB", "SOL", "XRP", "ADA", "DOGE", "TRX", "TON", "AVAX",
+  // L1 / L2 / popular
+  "MATIC", "POL", "DOT", "LTC", "BCH", "LINK", "UNI", "ATOM", "NEAR", "APT",
+  "ARB", "OP", "INJ", "SUI", "TIA", "SEI", "STX", "FTM", "EGLD", "ALGO",
+  "FLOW", "HBAR", "XLM", "VET", "THETA", "ICP", "FIL", "RNDR", "GRT", "AAVE",
+  "MKR", "SNX", "LDO", "CRV", "COMP", "1INCH", "DYDX", "GMX",
+  // Memes
+  "PEPE", "SHIB", "FLOKI", "WIF", "BONK", "MEME",
+  // Gaming / metaverse
+  "AXS", "SAND", "MANA", "IMX", "GALA", "APE", "ENS",
 ]);
 
-const FOREX_PAIRS = new Set([
-  "EURUSD", "GBPUSD", "USDJPY", "GBPJPY", "AUDUSD", "USDCAD", "USDCHF",
-  "NZDUSD", "EURJPY", "EURGBP", "AUDJPY", "CHFJPY", "EURCHF", "EURAUD",
-  "GBPAUD", "GBPCHF", "GBPCAD",
+export const FOREX_PAIRS = new Set([
+  // Majors
+  "EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
+  // Crosses
+  "EURJPY", "GBPJPY", "EURGBP", "AUDJPY", "CHFJPY", "EURCHF", "EURAUD",
+  "EURCAD", "EURNZD", "GBPAUD", "GBPCHF", "GBPCAD", "GBPNZD", "AUDCAD",
+  "AUDCHF", "AUDNZD", "CADJPY", "CADCHF", "NZDJPY", "NZDCAD", "NZDCHF",
+  // Exotics
+  "USDMXN", "USDZAR", "USDSGD", "USDHKD", "USDTRY", "USDNOK", "USDSEK",
+  "USDPLN", "USDDKK", "USDCNH", "USDINR", "USDTHB",
 ]);
 
 const COMMODITY_MAP: Record<string, string> = {
@@ -25,6 +39,8 @@ const COMMODITY_MAP: Record<string, string> = {
   UKOIL: "TVC:UKOIL",
   XPTUSD: "TVC:PLATINUM",
   XPDUSD: "TVC:PALLADIUM",
+  XCUUSD: "TVC:COPPER",
+  NATGAS: "TVC:NATURALGAS",
 };
 
 const INDEX_MAP: Record<string, string> = {
@@ -34,6 +50,10 @@ const INDEX_MAP: Record<string, string> = {
   GER40: "TVC:DAX",
   UK100: "TVC:UKX",
   JPN225: "TVC:NI225",
+  FRA40: "TVC:CAC40",
+  AUS200: "TVC:AS51",
+  HK50: "TVC:HSI",
+  ESP35: "TVC:IBC",
 };
 
 /** Strip separators and uppercase. "btc/usd" -> "BTCUSD" */
@@ -43,6 +63,9 @@ export const normalizeSymbol = (s: string): string =>
 /** Returns the Binance trading symbol (e.g. "BTCUSDT") or null if unsupported. */
 export const toBinanceSymbol = (input: string): string | null => {
   const sym = normalizeSymbol(input);
+  // Already a known base alone (e.g. "BTC") → default to USDT pair
+  if (CRYPTO_BASES.has(sym)) return `${sym}USDT`;
+
   for (const quote of STABLECOIN_QUOTES) {
     if (sym.endsWith(quote)) {
       const base = sym.slice(0, -quote.length);
@@ -78,3 +101,4 @@ export const prettySymbol = (input: string): string => {
 };
 
 export const isCrypto = (input: string): boolean => toBinanceSymbol(input) !== null;
+export const isForex = (input: string): boolean => FOREX_PAIRS.has(normalizeSymbol(input));

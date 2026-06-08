@@ -1,8 +1,10 @@
 import { ReactNode, useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Bell, Menu, Home, BarChart3, Trophy, Wallet, ArrowRightLeft } from "lucide-react";
+import { Bell, Menu, Home, BarChart3, Trophy, Wallet, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+const ACADEMY_URL = "https://blackpal-ascend-protocol.lovable.app/dashboard";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,8 +16,8 @@ interface AppShellProps {
 const NAV = [
   { key: "/", label: "Home", Icon: Home },
   { key: "/terminal", label: "Trade", Icon: BarChart3 },
-  { key: "/futures", label: "Swap", Icon: ArrowRightLeft },
-  { key: "/claims", label: "Prizes", Icon: Trophy },
+  { key: "/leaderboard", label: "Ranks", Icon: Trophy },
+  { key: "/claims", label: "Wallet", Icon: Wallet },
 ];
 
 export const AppShell = ({ children, title, showHeader = true, showNav = true }: AppShellProps) => {
@@ -60,6 +62,17 @@ export const AppShell = ({ children, title, showHeader = true, showNav = true }:
             </div>
           </button>
           <div className="flex items-center gap-2">
+            <a
+              href={ACADEMY_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 h-10 px-3 rounded-full glass-pill hover:scale-105 active:scale-95 transition-transform"
+              aria-label="Open Academy"
+              title="Open Academy in new tab"
+            >
+              <GraduationCap className="w-4 h-4 text-[hsl(var(--primary))]" />
+              <span className="text-[11px] font-bold tracking-wide hidden sm:inline">Academy</span>
+            </a>
             <button
               onClick={() => navigate("/blacknotify")}
               className="relative w-10 h-10 rounded-full glass-pill flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
