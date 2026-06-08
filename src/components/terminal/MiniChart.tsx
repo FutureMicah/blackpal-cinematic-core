@@ -324,11 +324,30 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className={cn(
-            "text-[9px] font-bold tracking-wider",
-            transport === "live" ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--gold))]"
-          )}>
-            {transport === "live" ? "LIVE" : "CACHE"}
+          <span
+            title={
+              transport === "ws"
+                ? "Streaming live via WebSocket"
+                : transport === "rest"
+                ? "Polling Binance REST API"
+                : "Connection lost — showing cached data"
+            }
+            className={cn(
+              "flex items-center gap-1 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded",
+              transport === "ws" && "text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.12)]",
+              transport === "rest" && "text-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.12)]",
+              transport === "fallback" && "text-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.12)]"
+            )}
+          >
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                transport === "ws" && "bg-[hsl(var(--accent))] animate-pulse",
+                transport === "rest" && "bg-[hsl(var(--primary))]",
+                transport === "fallback" && "bg-[hsl(var(--gold))]"
+              )}
+            />
+            {transport === "ws" ? "WS" : transport === "rest" ? "REST" : "CACHE"}
           </span>
           <div className="flex items-center gap-0.5">
             {TIMEFRAMES.map((t) => (
