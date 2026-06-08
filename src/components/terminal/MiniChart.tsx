@@ -75,7 +75,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       return;
     }
     setLoadError(null);
-    setTransport("live");
+    setTransport("rest");
     const cached = typeof window !== "undefined" ? loadCachedCandles(cacheKey) : [];
     if (cached.length) setCandles(cached);
 
@@ -111,7 +111,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             setCandles(result);
             saveCachedCandles(cacheKey, result);
             setLoadError(null);
-            setTransport("live");
+            setTransport("rest");
             logHealth("rest_ok", { endpoint, symbol: bSym, attempt });
             return;
           }
@@ -121,7 +121,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
         await new Promise((r) => setTimeout(r, delay));
       }
       if (!cancelled) {
-        setTransport(wsHealthyRef.current ? "live" : "fallback");
+        setTransport(wsHealthyRef.current ? "ws" : "fallback");
         setLoadError(
           cached.length
             ? "Live feed delayed — showing cached data"
@@ -170,7 +170,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           setHigh24h(parseFloat(d.h));
           setLow24h(parseFloat(d.l));
           setVolume24h(parseFloat(d.q));
-          setTransport("live");
+          setTransport("rest");
           setLoadError((prev) => (prev === "Live feed delayed — showing cached data" ? null : prev));
         } catch {
           // ignore
@@ -208,7 +208,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             saveCachedCandles(cacheKey, next);
             return next;
           });
-          setTransport("live");
+          setTransport("rest");
         } catch {
           // ignore
         }
