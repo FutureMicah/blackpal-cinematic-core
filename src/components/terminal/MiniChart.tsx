@@ -170,7 +170,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           setHigh24h(parseFloat(d.h));
           setLow24h(parseFloat(d.l));
           setVolume24h(parseFloat(d.q));
-          setTransport("rest");
+          setTransport("ws");
           setLoadError((prev) => (prev === "Live feed delayed — showing cached data" ? null : prev));
         } catch {
           // ignore
@@ -208,7 +208,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             saveCachedCandles(cacheKey, next);
             return next;
           });
-          setTransport("rest");
+          setTransport("ws");
         } catch {
           // ignore
         }
