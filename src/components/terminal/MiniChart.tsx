@@ -56,7 +56,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [low24h, setLow24h] = useState(0);
   const [volume24h, setVolume24h] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [transport, setTransport] = useState<"live" | "fallback">("live");
+  const [transport, setTransport] = useState<"ws" | "rest" | "fallback">("rest");
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
@@ -75,7 +75,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       return;
     }
     setLoadError(null);
-    setTransport("live");
+    setTransport("rest");
     const cached = typeof window !== "undefined" ? loadCachedCandles(cacheKey) : [];
     if (cached.length) setCandles(cached);
 
@@ -111,7 +111,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             setCandles(result);
             saveCachedCandles(cacheKey, result);
             setLoadError(null);
-            setTransport("live");
+            setTransport("rest");
             logHealth("rest_ok", { endpoint, symbol: bSym, attempt });
             return;
           }
@@ -121,7 +121,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
         await new Promise((r) => setTimeout(r, delay));
       }
       if (!cancelled) {
-        setTransport(wsHealthyRef.current ? "live" : "fallback");
+        setTransport(wsHealthyRef.current ? "ws" : "fallback");
         setLoadError(
           cached.length
             ? "Live feed delayed — showing cached data"
@@ -170,7 +170,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           setHigh24h(parseFloat(d.h));
           setLow24h(parseFloat(d.l));
           setVolume24h(parseFloat(d.q));
-          setTransport("live");
+          setTransport("ws");
           setLoadError((prev) => (prev === "Live feed delayed — showing cached data" ? null : prev));
         } catch {
           // ignore
@@ -208,7 +208,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
             saveCachedCandles(cacheKey, next);
             return next;
           });
-          setTransport("live");
+          setTransport("ws");
         } catch {
           // ignore
         }
@@ -324,11 +324,30 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className={cn(
-            "text-[9px] font-bold tracking-wider",
-            transport === "live" ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--gold))]"
-          )}>
-            {transport === "live" ? "LIVE" : "CACHE"}
+          <span
+            title={
+              transport === "ws"
+                ? "Streaming live via WebSocket"
+                : transport === "rest"
+                ? "Polling Binance REST API"
+                : "Connection lost — showing cached data"
+            }
+            className={cn(
+              "flex items-center gap-1 text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded",
+              transport === "ws" && "text-[hsl(var(--accent))] bg-[hsl(var(--accent)/0.12)]",
+              transport === "rest" && "text-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.12)]",
+              transport === "fallback" && "text-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.12)]"
+            )}
+          >
+            <span
+              className={cn(
+                "w-1.5 h-1.5 rounded-full",
+                transport === "ws" && "bg-[hsl(var(--accent))] animate-pulse",
+                transport === "rest" && "bg-[hsl(var(--primary))]",
+                transport === "fallback" && "bg-[hsl(var(--gold))]"
+              )}
+            />
+            {transport === "ws" ? "WS" : transport === "rest" ? "REST" : "CACHE"}
           </span>
           <div className="flex items-center gap-0.5">
             {TIMEFRAMES.map((t) => (

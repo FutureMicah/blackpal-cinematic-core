@@ -14,6 +14,7 @@ import FuturesDashboard from "./pages/FuturesDashboard";
 import AdminPanel from "./pages/AdminPanel";
 import MyClaims from "./pages/MyClaims";
 import Home from "./pages/Home";
+import Leaderboard from "./pages/Leaderboard";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/claims" element={<MyClaims />} />
+        <Route path="/leaderboard" element={<Leaderboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </BrowserRouter>
