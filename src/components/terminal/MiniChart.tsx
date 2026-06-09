@@ -392,23 +392,41 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
           <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] gap-2 px-4 text-center" data-testid="chart-empty-state">
             {unresolved && !useFallback ? (
               <>
-                <span className="text-[hsl(var(--coral))] font-bold">⚠ Unsupported pair</span>
-                <span className="text-muted-foreground/70 text-[9px] leading-snug">
-                  <span className="font-mono">{prettySymbol(symbol)}</span> can't be resolved through Binance or TradingView.
-                </span>
-                <button
-                  onClick={() => setUseFallback(true)}
-                  className="px-3 py-1 rounded-lg border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--primary)/0.15)] transition-all"
-                >
-                  USE BTC/USDT INSTEAD
-                </button>
+                <span className="text-[hsl(var(--coral))] font-bold" data-testid="unresolved-title">⚠ Unsupported pair</span>
+                <div className="text-muted-foreground/80 text-[10px] leading-snug space-y-1">
+                  <div>
+                    <span className="text-muted-foreground/60">Attempted:</span>{" "}
+                    <span className="font-mono font-bold text-foreground" data-testid="attempted-pair">{prettySymbol(symbol)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground/60">Safe fallback:</span>{" "}
+                    <span className="font-mono font-bold text-[hsl(var(--gold))]" data-testid="fallback-pair">{FALLBACK_SYMBOL}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1">
+                  <button
+                    onClick={() => setRetryNonce((n) => n + 1)}
+                    className="px-2.5 py-1 rounded-lg border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.08)] text-[hsl(var(--gold))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.15)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold)/0.6)]"
+                    data-testid="retry-resolve"
+                    aria-label={`Retry resolving ${prettySymbol(symbol)}`}
+                  >
+                    ⟳ RETRY RESOLVE
+                  </button>
+                  <button
+                    onClick={() => setUseFallback(true)}
+                    className="px-2.5 py-1 rounded-lg border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--primary)/0.15)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
+                    data-testid="use-fallback"
+                  >
+                    USE {FALLBACK_SYMBOL}
+                  </button>
+                </div>
               </>
             ) : loadError ? (
               <>
                 <span className="text-[hsl(var(--gold))]">⚠ {loadError}</span>
                 <button
                   onClick={() => setRetryNonce((n) => n + 1)}
-                  className="px-3 py-1 rounded-lg border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.08)] text-[hsl(var(--gold))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.15)] transition-all"
+                  className="px-3 py-1 rounded-lg border border-[hsl(var(--gold)/0.4)] bg-[hsl(var(--gold)/0.08)] text-[hsl(var(--gold))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--gold)/0.15)] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold)/0.6)]"
                 >
                   RETRY
                 </button>
