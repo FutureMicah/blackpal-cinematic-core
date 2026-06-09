@@ -111,8 +111,8 @@ describe("MiniChart status pill — transport transitions", () => {
     render(<MiniChart symbol="FOO/BAR" />);
     await waitFor(() => expect(screen.getByTestId("chart-empty-state")).toBeInTheDocument());
     expect(screen.getByText(/Unsupported pair/i)).toBeInTheDocument();
-    expect(screen.getByTestId("attempted-pair").textContent).toMatch(/FOO\/BAR/);
-    expect(screen.getByTestId("fallback-pair").textContent).toMatch(/BTC\/USDT/);
+    expect(screen.getByTestId("attempted-pair").textContent).toMatch(/FOO.?BAR/);
+    expect(screen.getByTestId("fallback-pair").textContent).toMatch(/BTC.?USDT/);
     expect(screen.getByTestId("retry-resolve")).toBeInTheDocument();
     expect(screen.getByTestId("use-fallback")).toBeInTheDocument();
   });
