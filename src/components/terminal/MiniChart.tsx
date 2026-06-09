@@ -47,6 +47,8 @@ const saveCachedCandles = (key: string, candles: Candle[]) => {
   }
 };
 
+const FALLBACK_SYMBOL = "BTC/USDT";
+
 export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [candles, setCandles] = useState<Candle[]>([]);
   const [tf, setTf] = useState("5m");
@@ -57,11 +59,18 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
   const [volume24h, setVolume24h] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [transport, setTransport] = useState<"ws" | "rest" | "fallback">("rest");
+  const [useFallback, setUseFallback] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
-  const bSym = useMemo(() => toBinanceSymbol(symbol), [symbol]);
-  const display = useMemo(() => prettySymbol(symbol), [symbol]);
+  // Reset fallback opt-in whenever the user picks a new asset
+  useEffect(() => { setUseFallback(false); }, [symbol]);
+
+  const effectiveSymbol = useFallback ? FALLBACK_SYMBOL : symbol;
+  const originalBSym = useMemo(() => toBinanceSymbol(symbol), [symbol]);
+  const bSym = useMemo(() => toBinanceSymbol(effectiveSymbol), [effectiveSymbol]);
+  const display = useMemo(() => prettySymbol(effectiveSymbol), [effectiveSymbol]);
+  const unresolved = originalBSym === null;
   const cacheKey = `${CACHE_PREFIX}${bSym ?? "NA"}:${tf}`;
 
   const [retryNonce, setRetryNonce] = useState(0);
