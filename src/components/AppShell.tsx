@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Menu, Home, BarChart3, Trophy, Wallet, GraduationCap } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { HelpFAQ } from "@/components/HelpFAQ";
 
 const ACADEMY_URL = "https://blackpal-ascend-protocol.lovable.app/dashboard";
 
@@ -73,6 +74,7 @@ export const AppShell = ({ children, title, showHeader = true, showNav = true }:
               <GraduationCap className="w-4 h-4 text-[hsl(var(--primary))]" />
               <span className="text-[11px] font-bold tracking-wide hidden sm:inline">Academy</span>
             </a>
+            <HelpFAQ />
             <button
               onClick={() => navigate("/blacknotify")}
               className="relative w-10 h-10 rounded-full glass-pill flex items-center justify-center hover:scale-105 active:scale-95 transition-transform"
