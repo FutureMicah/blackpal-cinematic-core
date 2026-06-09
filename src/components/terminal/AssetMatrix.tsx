@@ -225,42 +225,57 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
 }) => {
   const binance = toBinanceSymbol(asset.symbol);
   const tv = toTradingViewSymbol(asset.symbol);
-  const resolveTip = `${asset.symbol}\n• Binance: ${binance ?? "unsupported"}\n• TradingView: ${tv}`;
   return (
-  <div
-    onClick={onSelect}
-    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
-    role="button"
-    tabIndex={0}
-    aria-pressed={selected}
-    title={resolveTip}
-    aria-label={`${asset.symbol} — Binance ${binance ?? "unsupported"}, TradingView ${tv}`}
-    className={cn(
-      "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/40",
-      selected
-        ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
-        : "hover:bg-muted/20 border border-transparent"
-    )}
-  >
-    <span className="text-sm shrink-0">{asset.icon}</span>
-    <div className="flex-1 min-w-0">
-      <p className="text-[11px] font-semibold truncate leading-tight">{asset.symbol}</p>
-      <p className="text-[9px] text-muted-foreground/60 truncate">{asset.name}</p>
-    </div>
-    <div className="text-right shrink-0">
-      <p className="text-[10px] font-mono leading-tight">{asset.price}</p>
-      <p className={cn("text-[9px] font-mono font-bold", asset.change >= 0 ? "text-accent" : "text-destructive")}>
-        {asset.change >= 0 ? "+" : ""}{asset.change}%
-      </p>
-    </div>
-    <button
-      type="button"
-      aria-label={isFav ? `Unfavorite ${asset.symbol}` : `Favorite ${asset.symbol}`}
-      onClick={e => { e.stopPropagation(); onToggleFav(); }}
-      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0 ml-0.5 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--gold))] rounded"
-    >
-      <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
-    </button>
-  </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          onClick={onSelect}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selected}
+          aria-label={`${asset.symbol} — Binance ${binance ?? "unsupported"}, TradingView ${tv}`}
+          className={cn(
+            "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:bg-primary/5",
+            selected
+              ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
+              : "hover:bg-muted/20 border border-transparent"
+          )}
+        >
+          <span className="text-sm shrink-0">{asset.icon}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold truncate leading-tight">{asset.symbol}</p>
+            <p className="text-[9px] text-muted-foreground/60 truncate">{asset.name}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-[10px] font-mono leading-tight">{asset.price}</p>
+            <p className={cn("text-[9px] font-mono font-bold", asset.change >= 0 ? "text-accent" : "text-destructive")}>
+              {asset.change >= 0 ? "+" : ""}{asset.change}%
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={isFav ? `Unfavorite ${asset.symbol}` : `Favorite ${asset.symbol}`}
+            onClick={e => { e.stopPropagation(); onToggleFav(); }}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0 ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))] rounded"
+          >
+            <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
+          </button>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="right" align="start" className="text-[11px] font-mono p-2 max-w-[240px]">
+        <div className="font-bold mb-1">{asset.symbol}</div>
+        <div className="flex justify-between gap-3">
+          <span className="text-muted-foreground">Binance:</span>
+          <span className={binance ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--coral))]"}>
+            {binance ?? "unsupported"}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span className="text-muted-foreground">TradingView:</span>
+          <span className="text-[hsl(var(--primary))]">{tv}</span>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 };
