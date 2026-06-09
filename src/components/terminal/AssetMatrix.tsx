@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Search, Star, TrendingUp, Flame, Droplets, BarChart3, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toBinanceSymbol, toTradingViewSymbol } from "@/lib/symbols";
 
