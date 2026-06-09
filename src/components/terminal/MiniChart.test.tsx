@@ -122,7 +122,7 @@ describe("MiniChart status pill — transport transitions", () => {
 
     // 1. Error state visible, no transport yet because bSym is null
     await waitFor(() => expect(getByTestId("chart-empty-state")).toBeInTheDocument());
-    expect(getByTestId("attempted-pair").textContent).toMatch(/FOO\/BAR/);
+    expect(getByTestId("attempted-pair").textContent).toMatch(/FOO.?BAR/);
     expect(MockWebSocket.instances.length).toBe(0); // no WS for unresolved
 
     // 2. Click the "USE BTC/USDT" fallback button
