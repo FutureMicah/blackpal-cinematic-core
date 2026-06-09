@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Search, Star, TrendingUp, Flame, Droplets, BarChart3, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toBinanceSymbol, toTradingViewSymbol } from "@/lib/symbols";
 
@@ -135,6 +136,7 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
   };
 
   return (
+    <TooltipProvider delayDuration={150} skipDelayDuration={0}>
     <div className="h-full flex flex-col bg-background/70 backdrop-blur-xl border-r border-border/20">
       {/* Header */}
       <div className="p-2.5 border-b border-border/15">
@@ -142,8 +144,9 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
           <h2 className="text-[10px] font-bold tracking-[0.2em] text-muted-foreground">ASSET MATRIX</h2>
           <button
             onClick={() => setSortBy(s => s === "name" ? "change" : "name")}
-            className="p-1 rounded hover:bg-muted/30 text-muted-foreground transition-colors"
+            className="p-1 rounded hover:bg-muted/30 text-muted-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
             title={`Sort by ${sortBy === "name" ? "volatility" : "name"}`}
+            aria-label={`Sort by ${sortBy === "name" ? "volatility" : "name"}`}
           >
             <Filter className="w-3 h-3" />
           </button>
@@ -154,19 +157,22 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search..."
+            aria-label="Search assets"
             className="pl-7 h-7 text-[11px] bg-muted/20 border-border/15 rounded-lg focus:border-primary/30 focus:shadow-[0_0_8px_hsl(var(--primary)/0.1)]"
           />
         </div>
       </div>
 
       {/* Category Tabs */}
-      <div className="flex gap-px p-1.5 overflow-x-auto scrollbar-none border-b border-border/10">
+      <div className="flex gap-px p-1.5 overflow-x-auto scrollbar-none border-b border-border/10" role="tablist" aria-label="Asset categories">
         {CATEGORIES.map(cat => (
           <button
             key={cat.key}
+            role="tab"
+            aria-selected={category === cat.key}
             onClick={() => setCategory(cat.key)}
             className={cn(
-              "px-2 py-1 text-[9px] font-semibold rounded-md whitespace-nowrap transition-all",
+              "px-2 py-1 text-[9px] font-semibold rounded-md whitespace-nowrap transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
               category === cat.key
                 ? "bg-primary/15 text-primary border border-primary/25 shadow-[0_0_6px_hsl(var(--primary)/0.1)]"
                 : "text-muted-foreground/70 hover:bg-muted/30 hover:text-muted-foreground"
@@ -209,6 +215,7 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
         ))}
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
@@ -218,42 +225,57 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
 }) => {
   const binance = toBinanceSymbol(asset.symbol);
   const tv = toTradingViewSymbol(asset.symbol);
-  const resolveTip = `${asset.symbol}\n• Binance: ${binance ?? "unsupported"}\n• TradingView: ${tv}`;
   return (
-  <div
-    onClick={onSelect}
-    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
-    role="button"
-    tabIndex={0}
-    aria-pressed={selected}
-    title={resolveTip}
-    aria-label={`${asset.symbol} — Binance ${binance ?? "unsupported"}, TradingView ${tv}`}
-    className={cn(
-      "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/40",
-      selected
-        ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
-        : "hover:bg-muted/20 border border-transparent"
-    )}
-  >
-    <span className="text-sm shrink-0">{asset.icon}</span>
-    <div className="flex-1 min-w-0">
-      <p className="text-[11px] font-semibold truncate leading-tight">{asset.symbol}</p>
-      <p className="text-[9px] text-muted-foreground/60 truncate">{asset.name}</p>
-    </div>
-    <div className="text-right shrink-0">
-      <p className="text-[10px] font-mono leading-tight">{asset.price}</p>
-      <p className={cn("text-[9px] font-mono font-bold", asset.change >= 0 ? "text-accent" : "text-destructive")}>
-        {asset.change >= 0 ? "+" : ""}{asset.change}%
-      </p>
-    </div>
-    <button
-      type="button"
-      aria-label={isFav ? `Unfavorite ${asset.symbol}` : `Favorite ${asset.symbol}`}
-      onClick={e => { e.stopPropagation(); onToggleFav(); }}
-      className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0 ml-0.5 focus:outline-none focus:ring-1 focus:ring-[hsl(var(--gold))] rounded"
-    >
-      <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
-    </button>
-  </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div
+          onClick={onSelect}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
+          role="button"
+          tabIndex={0}
+          aria-pressed={selected}
+          aria-label={`${asset.symbol} — Binance ${binance ?? "unsupported"}, TradingView ${tv}`}
+          className={cn(
+            "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:bg-primary/5",
+            selected
+              ? "bg-primary/10 border border-primary/25 shadow-[0_0_10px_hsl(var(--primary)/0.1)]"
+              : "hover:bg-muted/20 border border-transparent"
+          )}
+        >
+          <span className="text-sm shrink-0">{asset.icon}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-semibold truncate leading-tight">{asset.symbol}</p>
+            <p className="text-[9px] text-muted-foreground/60 truncate">{asset.name}</p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-[10px] font-mono leading-tight">{asset.price}</p>
+            <p className={cn("text-[9px] font-mono font-bold", asset.change >= 0 ? "text-accent" : "text-destructive")}>
+              {asset.change >= 0 ? "+" : ""}{asset.change}%
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={isFav ? `Unfavorite ${asset.symbol}` : `Favorite ${asset.symbol}`}
+            onClick={e => { e.stopPropagation(); onToggleFav(); }}
+            className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity shrink-0 ml-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--gold))] rounded"
+          >
+            <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
+          </button>
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="right" align="start" className="text-[11px] font-mono p-2 max-w-[240px]">
+        <div className="font-bold mb-1">{asset.symbol}</div>
+        <div className="flex justify-between gap-3">
+          <span className="text-muted-foreground">Binance:</span>
+          <span className={binance ? "text-[hsl(var(--accent))]" : "text-[hsl(var(--coral))]"}>
+            {binance ?? "unsupported"}
+          </span>
+        </div>
+        <div className="flex justify-between gap-3">
+          <span className="text-muted-foreground">TradingView:</span>
+          <span className="text-[hsl(var(--primary))]">{tv}</span>
+        </div>
+      </TooltipContent>
+    </Tooltip>
   );
 };

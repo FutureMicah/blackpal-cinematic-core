@@ -111,6 +111,42 @@ describe("MiniChart status pill — transport transitions", () => {
     render(<MiniChart symbol="FOO/BAR" />);
     await waitFor(() => expect(screen.getByTestId("chart-empty-state")).toBeInTheDocument());
     expect(screen.getByText(/Unsupported pair/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /BTC\/USDT/i })).toBeInTheDocument();
+    expect(screen.getByTestId("attempted-pair").textContent).toMatch(/FOO.?BAR/);
+    expect(screen.getByTestId("fallback-pair").textContent).toMatch(/BTC.?USDT/);
+    expect(screen.getByTestId("retry-resolve")).toBeInTheDocument();
+    expect(screen.getByTestId("use-fallback")).toBeInTheDocument();
+  });
+
+  it("E2E: unsupported pair → click fallback → pill transitions REST → WS", async () => {
+    const { getByTestId } = render(<MiniChart symbol="FOO/BAR" />);
+
+    // 1. Error state visible, no transport yet because bSym is null
+    await waitFor(() => expect(getByTestId("chart-empty-state")).toBeInTheDocument());
+    expect(getByTestId("attempted-pair").textContent).toMatch(/FOO.?BAR/);
+    expect(MockWebSocket.instances.length).toBe(0); // no WS for unresolved
+
+    // 2. Click the "USE BTC/USDT" fallback button
+    restFetch.mockClear();
+    await act(async () => {
+      getByTestId("use-fallback").click();
+    });
+
+    // 3. REST poll kicks off for BTCUSDT and pill reads REST
+    await waitFor(() => expect(restFetch).toHaveBeenCalled());
+    const restCall = String((restFetch.mock.calls[0] as unknown as any[])[0]);
+    expect(restCall).toContain("BTCUSDT");
+    await waitFor(() => expect(pill().getAttribute("data-transport")).toBe("rest"));
+    expect(pill().textContent).toContain("REST");
+
+    // 4. WebSocket opens → pill transitions to WS
+    await waitFor(() => expect(MockWebSocket.instances.length).toBeGreaterThan(0));
+    const ticker = MockWebSocket.instances.find((w) => w.url.includes("@ticker"))!;
+    expect(ticker.url.toLowerCase()).toContain("btcusdt");
+    await act(async () => {
+      ticker.open();
+      ticker.onmessage?.({ data: JSON.stringify({ c: "67000", P: "1.5", h: "68000", l: "66000", q: "10000" }) });
+    });
+    await waitFor(() => expect(pill().getAttribute("data-transport")).toBe("ws"));
+    expect(pill().textContent).toContain("WS");
   });
 });
