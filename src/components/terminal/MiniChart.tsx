@@ -387,8 +387,21 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       <div className="flex-1 relative min-h-0">
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" aria-label={`${symbol} price chart`} />
         {candles.length === 0 && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] gap-2">
-            {loadError ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-[10px] gap-2 px-4 text-center" data-testid="chart-empty-state">
+            {unresolved && !useFallback ? (
+              <>
+                <span className="text-[hsl(var(--coral))] font-bold">⚠ Unsupported pair</span>
+                <span className="text-muted-foreground/70 text-[9px] leading-snug">
+                  <span className="font-mono">{prettySymbol(symbol)}</span> can't be resolved through Binance or TradingView.
+                </span>
+                <button
+                  onClick={() => setUseFallback(true)}
+                  className="px-3 py-1 rounded-lg border border-[hsl(var(--primary)/0.4)] bg-[hsl(var(--primary)/0.08)] text-[hsl(var(--primary))] text-[9px] font-bold tracking-wider hover:bg-[hsl(var(--primary)/0.15)] transition-all"
+                >
+                  USE BTC/USDT INSTEAD
+                </button>
+              </>
+            ) : loadError ? (
               <>
                 <span className="text-[hsl(var(--gold))]">⚠ {loadError}</span>
                 <button
