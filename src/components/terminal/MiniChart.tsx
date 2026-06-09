@@ -347,6 +347,8 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
               transport === "rest" && "text-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.12)]",
               transport === "fallback" && "text-[hsl(var(--gold))] bg-[hsl(var(--gold)/0.12)]"
             )}
+            data-testid="chart-status-pill"
+            data-transport={transport}
           >
             <span
               className={cn(
