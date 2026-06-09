@@ -133,7 +133,7 @@ describe("MiniChart status pill — transport transitions", () => {
 
     // 3. REST poll kicks off for BTCUSDT and pill reads REST
     await waitFor(() => expect(restFetch).toHaveBeenCalled());
-    const restCall = String(restFetch.mock.calls[0][0]);
+    const restCall = String((restFetch.mock.calls[0] as unknown as any[])[0]);
     expect(restCall).toContain("BTCUSDT");
     await waitFor(() => expect(pill().getAttribute("data-transport")).toBe("rest"));
     expect(pill().textContent).toContain("REST");
