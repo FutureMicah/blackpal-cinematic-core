@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Search, Star, TrendingUp, Flame, Droplets, BarChart3, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { toBinanceSymbol, toTradingViewSymbol } from "@/lib/symbols";
 
 interface Asset {
   symbol: string;
@@ -214,13 +215,19 @@ export const AssetMatrix = ({ selectedAsset, onSelectAsset }: AssetMatrixProps) 
 const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
   asset: Asset; selected: boolean; isFav: boolean;
   onSelect: () => void; onToggleFav: () => void;
-}) => (
+}) => {
+  const binance = toBinanceSymbol(asset.symbol);
+  const tv = toTradingViewSymbol(asset.symbol);
+  const resolveTip = `${asset.symbol}\n• Binance: ${binance ?? "unsupported"}\n• TradingView: ${tv}`;
+  return (
   <div
     onClick={onSelect}
     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onSelect(); } }}
     role="button"
     tabIndex={0}
     aria-pressed={selected}
+    title={resolveTip}
+    aria-label={`${asset.symbol} — Binance ${binance ?? "unsupported"}, TradingView ${tv}`}
     className={cn(
       "w-full flex items-center gap-1.5 px-2 py-1.5 rounded-lg text-left transition-all group cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/40",
       selected
@@ -248,4 +255,5 @@ const AssetRow = ({ asset, selected, isFav, onSelect, onToggleFav }: {
       <Star className={cn("w-3 h-3", isFav ? "fill-[hsl(var(--gold))] text-[hsl(var(--gold))]" : "text-muted-foreground/40")} />
     </button>
   </div>
-);
+  );
+};
