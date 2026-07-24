@@ -47,8 +47,8 @@ const Home = () => {
       setAuthChecked(true);
 
       // Contest stats (me)
-      const { data: lb } = await supabase.rpc("get_contest_leaderboard", {});
-      const mine = (lb as ContestRow[] | null)?.find((r) => r.user_id === session.user.id);
+      const { data: lbResp } = await supabase.functions.invoke("contest-leaderboard", { body: {} });
+      const mine = (lbResp?.data as ContestRow[] | null)?.find((r) => r.user_id === session.user.id);
       if (mine) setMe(mine);
 
       // Recent trades — last 30 for sparkline & weekly/today P&L

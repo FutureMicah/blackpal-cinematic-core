@@ -26,14 +26,13 @@ export const MissionCard = ({ mission, onComplete }: MissionCardProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase.rpc('complete_mission', {
-        p_user_id: user.id,
-        p_mission_id: mission.id
+      const { data: resp, error } = await supabase.functions.invoke('complete-mission', {
+        body: { p_mission_id: mission.id }
       });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; xp_awarded: number; coins_awarded: number };
+      const result = (resp?.data ?? resp) as { success: boolean; xp_awarded: number; coins_awarded: number };
       toast.success(`Mission Complete! +${result.xp_awarded} XP, +₦${result.coins_awarded}`);
       onComplete();
     } catch (error: any) {

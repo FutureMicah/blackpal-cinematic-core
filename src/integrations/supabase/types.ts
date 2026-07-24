@@ -1120,7 +1120,12 @@ export type Database = {
         }
         Returns: undefined
       }
-      claim_contest_prize: { Args: { p_contest_period: string }; Returns: Json }
+      claim_contest_prize:
+        | { Args: { p_contest_period: string }; Returns: Json }
+        | {
+            Args: { p_contest_period: string; p_user_id?: string }
+            Returns: Json
+          }
       complete_mission: {
         Args: { p_mission_id: string; p_user_id: string }
         Returns: Json

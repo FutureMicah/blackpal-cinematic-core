@@ -67,8 +67,8 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setLoading(false); return; }
 
-      const { data: lb } = await supabase.rpc("get_contest_leaderboard", {});
-      const me = (lb as any[] | null)?.find((r) => r.user_id === session.user.id);
+      const { data: lbResp } = await supabase.functions.invoke("contest-leaderboard", { body: {} });
+      const me = (lbResp?.data as any[] | null)?.find((r) => r.user_id === session.user.id);
       setMyRank(me?.rank ?? null);
       setMyPnl(Number(me?.total_pnl ?? 0));
 
@@ -102,9 +102,9 @@ export const PrizeClaimModal = ({ open, onClose, contestPeriod, onClaimed }: Pro
 
   const handleClaim = async () => {
     setClaiming(true);
-    const { data, error } = await supabase.rpc("claim_contest_prize", { p_contest_period: contestPeriod });
+    const { data: resp, error } = await supabase.functions.invoke("claim-prize", { body: { p_contest_period: contestPeriod } });
     setClaiming(false);
-    const result = data as any;
+    const result = (resp?.data ?? resp) as any;
     if (error || !result?.success) {
       const code = result?.code;
       const msg =

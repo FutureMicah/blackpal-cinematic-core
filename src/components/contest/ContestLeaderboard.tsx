@@ -22,8 +22,8 @@ export const ContestLeaderboard = ({ compact = false }: { compact?: boolean }) =
   const load = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     setMeId(session?.user.id ?? null);
-    const { data, error } = await supabase.rpc("get_contest_leaderboard", {});
-    if (!error && data) setRows(data as Row[]);
+    const { data: resp, error } = await supabase.functions.invoke("contest-leaderboard", { body: {} });
+    if (!error && resp?.data) setRows(resp.data as Row[]);
     setLoading(false);
   }, []);
 

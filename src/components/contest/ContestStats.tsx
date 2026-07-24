@@ -16,8 +16,8 @@ export const ContestStats = ({ refreshKey }: ContestStatsProps) => {
   const load = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
-    const { data } = await supabase.rpc("get_contest_leaderboard", {});
-    const me = (data as any[] | null)?.find((r) => r.user_id === session.user.id);
+    const { data: resp } = await supabase.functions.invoke("contest-leaderboard", { body: {} });
+    const me = (resp?.data as any[] | null)?.find((r) => r.user_id === session.user.id);
     if (me) {
       setPnl(Number(me.total_pnl));
       setTrades(Number(me.trade_count));
