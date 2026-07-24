@@ -1,1 +1,4 @@
 project_id = "hylbtinzydavmgomiokf"
+
+[functions.market-klines]
+verify_jwt = false
