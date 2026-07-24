@@ -11,10 +11,8 @@ interface Candle { o: number; h: number; l: number; c: number; t: number; }
 
 const CACHE_PREFIX = "mini-chart-cache:";
 const WS_BASE = "wss://stream.binance.com/ws";
-const REST_ENDPOINTS = [
-  "https://data-api.binance.vision/api/v3/klines",
-  "https://api.binance.com/api/v3/klines",
-] as const;
+const PROXY_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/market-klines`;
+const REST_ENDPOINTS = [PROXY_BASE] as const;
 
 const logHealth = (event: string, detail?: Record<string, unknown>) => {
   // eslint-disable-next-line no-console
@@ -95,7 +93,7 @@ export const MiniChart = ({ symbol }: MiniChartProps) => {
       const timeoutMs = 5000 + attempt * 2500;
       const timer = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const res = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60`, { signal: controller.signal });
+        const res = await fetch(`${endpoint}?symbol=${bSym}&interval=${tf}&limit=60&kind=klines`, { signal: controller.signal });
         clearTimeout(timer);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();

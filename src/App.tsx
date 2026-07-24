@@ -15,6 +15,8 @@ import AdminPanel from "./pages/AdminPanel";
 import MyClaims from "./pages/MyClaims";
 import Home from "./pages/Home";
 import Leaderboard from "./pages/Leaderboard";
+import AuditLog from "./pages/AuditLog";
+import SecurityReport from "./pages/SecurityReport";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,8 @@ const App = () => (
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/claims" element={<MyClaims />} />
         <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route path="/audit" element={<AuditLog />} />
+        <Route path="/security" element={<SecurityReport />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       </BrowserRouter>
