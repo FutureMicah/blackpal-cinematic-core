@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_payouts: {
+        Row: {
+          account_id: string
+          created_at: string
+          gross_profit: number
+          id: string
+          net_amount: number
+          profit_split_pct: number
+          review_notes: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          gross_profit: number
+          id?: string
+          net_amount: number
+          profit_split_pct: number
+          review_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          gross_profit?: number
+          id?: string
+          net_amount?: number
+          profit_split_pct?: number
+          review_notes?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_payouts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "trading_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_ui_settings: {
         Row: {
           category: string
@@ -778,6 +825,72 @@ export type Database = {
         }
         Relationships: []
       }
+      trading_accounts: {
+        Row: {
+          account_type: string
+          balance: number
+          breach_reason: string | null
+          created_at: string
+          daily_loss_limit_pct: number
+          day_anchor_date: string
+          day_start_balance: number
+          id: string
+          label: string
+          locked_amount: number
+          max_drawdown_pct: number
+          max_leverage: number
+          peak_balance: number
+          profit_split_pct: number
+          profit_target_pct: number
+          starting_balance: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_type?: string
+          balance: number
+          breach_reason?: string | null
+          created_at?: string
+          daily_loss_limit_pct?: number
+          day_anchor_date?: string
+          day_start_balance: number
+          id?: string
+          label?: string
+          locked_amount?: number
+          max_drawdown_pct?: number
+          max_leverage?: number
+          peak_balance: number
+          profit_split_pct?: number
+          profit_target_pct?: number
+          starting_balance: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_type?: string
+          balance?: number
+          breach_reason?: string | null
+          created_at?: string
+          daily_loss_limit_pct?: number
+          day_anchor_date?: string
+          day_start_balance?: number
+          id?: string
+          label?: string
+          locked_amount?: number
+          max_drawdown_pct?: number
+          max_leverage?: number
+          peak_balance?: number
+          profit_split_pct?: number
+          profit_target_pct?: number
+          starting_balance?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1110,6 +1223,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_trade_result: {
+        Args: { p_pnl: number; p_user_id: string }
+        Returns: Json
+      }
       award_xp: {
         Args: {
           p_amount: number
@@ -1149,6 +1266,23 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      open_trading_account: {
+        Args: {
+          p_amount: number
+          p_daily_loss_limit_pct?: number
+          p_label?: string
+          p_max_drawdown_pct?: number
+          p_max_leverage?: number
+          p_profit_split_pct?: number
+          p_profit_target_pct?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      request_account_payout: {
+        Args: { p_account_id: string; p_user_id: string }
+        Returns: Json
       }
       update_wallet_balance: {
         Args: {
