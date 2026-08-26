@@ -14,6 +14,10 @@ import { PrizeClaimModal } from "@/components/contest/PrizeClaimModal";
 import { analyzeBehavior, type TradeRecord, type BehaviorWarning } from "@/components/terminal/BehaviorEngine";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useRealtimeWallet } from "@/hooks/useRealtimeWallet";
+import { useTradingAccount, deriveMetrics } from "@/hooks/useTradingAccount";
+import { AccountHeaderBar } from "@/components/lock/AccountHeaderBar";
+import { RiskRulesPanel } from "@/components/lock/RiskRulesPanel";
+import { LockCapitalModal } from "@/components/lock/LockCapitalModal";
 import { cn } from "@/lib/utils";
 import { Icon3D } from "@/components/Icon3D";
 import { LineChart, Trophy, Wallet, BarChart3, Gift, BookOpen } from "lucide-react";
@@ -38,8 +42,19 @@ const BlackTerminal = () => {
   const isMobile = useIsMobile();
   const contestPeriod = currentContestPeriod();
 
+  const [lockOpen, setLockOpen] = useState(false);
   const { balances, refetch: refetchWallet } = useRealtimeWallet();
   const btkBalance = balances.BTK || 0;
+  const { account, openAccount, applyResult, requestPayout } = useTradingAccount();
+  const metrics = deriveMetrics(account);
+  const tradingBlocked = !account || account.status !== "active";
+  const blockedReason = !account || account.status === "closed"
+    ? "LOCK CAPITAL TO START TRADING"
+    : account.status === "breached"
+      ? `BREACHED — ${account.breach_reason ?? "rule violation"}`
+      : account.status === "passed"
+        ? "TARGET REACHED — REQUEST YOUR PAYOUT"
+        : undefined;
 
   const loadTradeHistory = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -70,6 +85,11 @@ const BlackTerminal = () => {
   }, [navigate]);
 
   useEffect(() => { if (!loading) loadTradeHistory(); }, [loading, loadTradeHistory]);
+
+  const handlePositionClosed = async (realized?: number) => {
+    refetchWallet();
+    if (typeof realized === "number" && account?.status === "active") await applyResult(realized);
+  };
 
   const handleTradeExecuted = () => {
     refetchWallet();
@@ -129,18 +149,29 @@ const BlackTerminal = () => {
         <main className="flex-1 overflow-y-auto p-2 space-y-2">
           {mobileTab === "trade" && (
             <>
+              <AccountHeaderBar account={account} metrics={metrics} onLock={() => setLockOpen(true)} compact />
+              <RiskRulesPanel account={account} metrics={metrics} onRequestPayout={requestPayout} />
               <PrizePoolBanner />
               <ContestStats refreshKey={statsKey} />
               <div className="h-56"><MiniChart symbol={selectedAsset} /></div>
-              <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
-              <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={null} />
+              <OneClickTrading
+                symbol={selectedAsset}
+                btkBalance={btkBalance}
+                onTradeExecuted={handleTradeExecuted}
+                maxLeverage={account?.max_leverage ?? 20}
+                tradingBlocked={tradingBlocked}
+                blockedReason={blockedReason}
+              />
+              <div className={cn(tradingBlocked && "opacity-50 pointer-events-none")}>
+                <TradeEngine symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} behaviorWarnings={behaviorWarnings} prefillPrice={null} />
+              </div>
               <ContestRules />
             </>
           )}
           {mobileTab === "markets" && (
             <div className="h-[calc(100dvh-130px)]"><AssetMatrix selectedAsset={selectedAsset} onSelectAsset={(s) => { setSelectedAsset(s); setMobileTab("trade"); }} /></div>
           )}
-          {mobileTab === "positions" && <div className="h-[calc(100dvh-130px)]"><PositionsPanel onPositionClosed={refetchWallet} /></div>}
+          {mobileTab === "positions" && <div className="h-[calc(100dvh-130px)]"><PositionsPanel onPositionClosed={handlePositionClosed} /></div>}
           {mobileTab === "ranks" && <div className="h-[calc(100dvh-130px)]"><ContestLeaderboard /></div>}
         </main>
 
@@ -189,6 +220,7 @@ const BlackTerminal = () => {
         </button>
 
         <PrizeClaimModal open={claimOpen} onClose={() => setClaimOpen(false)} contestPeriod={contestPeriod} onClaimed={refetchWallet} />
+        <LockCapitalModal open={lockOpen} onClose={() => setLockOpen(false)} btkBalance={btkBalance} onOpenAccount={openAccount} />
       </div>
     );
   }
@@ -238,6 +270,7 @@ const BlackTerminal = () => {
       </header>
 
       <div className="flex-1 overflow-hidden p-3 space-y-3 flex flex-col">
+        <AccountHeaderBar account={account} metrics={metrics} onLock={() => setLockOpen(true)} />
         <PrizePoolBanner />
         <ContestStats refreshKey={statsKey} />
 
@@ -252,10 +285,17 @@ const BlackTerminal = () => {
           <div className="col-span-5 flex flex-col gap-3 overflow-hidden min-w-0">
             <div className="flex-1 min-h-0"><MiniChart symbol={selectedAsset} /></div>
             <div className="shrink-0">
-              <OneClickTrading symbol={selectedAsset} btkBalance={btkBalance} onTradeExecuted={handleTradeExecuted} />
+              <OneClickTrading
+                symbol={selectedAsset}
+                btkBalance={btkBalance}
+                onTradeExecuted={handleTradeExecuted}
+                maxLeverage={account?.max_leverage ?? 20}
+                tradingBlocked={tradingBlocked}
+                blockedReason={blockedReason}
+              />
             </div>
             <div className="h-44 shrink-0 rounded-2xl border border-border/15 bg-card/40 backdrop-blur-xl overflow-hidden">
-              <PositionsPanel onPositionClosed={refetchWallet} />
+              <PositionsPanel onPositionClosed={handlePositionClosed} />
             </div>
           </div>
 
@@ -264,7 +304,8 @@ const BlackTerminal = () => {
             <div className="flex-1 min-h-0">
               <ContestLeaderboard />
             </div>
-            <div className="shrink-0">
+            <div className="shrink-0 space-y-3">
+              <RiskRulesPanel account={account} metrics={metrics} onRequestPayout={requestPayout} />
               <ContestRules />
             </div>
           </div>
@@ -272,6 +313,7 @@ const BlackTerminal = () => {
       </div>
 
       <PrizeClaimModal open={claimOpen} onClose={() => setClaimOpen(false)} contestPeriod={contestPeriod} onClaimed={refetchWallet} />
+      <LockCapitalModal open={lockOpen} onClose={() => setLockOpen(false)} btkBalance={btkBalance} onOpenAccount={openAccount} />
     </div>
   );
 };

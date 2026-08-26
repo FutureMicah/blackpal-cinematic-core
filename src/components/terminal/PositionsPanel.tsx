@@ -20,7 +20,7 @@ interface Position {
 }
 
 interface PositionsPanelProps {
-  onPositionClosed?: () => void;
+  onPositionClosed?: (realizedPnl?: number) => void;
 }
 
 export const PositionsPanel = ({ onPositionClosed }: PositionsPanelProps) => {
@@ -121,7 +121,7 @@ export const PositionsPanel = ({ onPositionClosed }: PositionsPanelProps) => {
       });
 
       toast.success(`Closed ${pct}% — ${realized >= 0 ? "+" : ""}${realized.toFixed(2)} BTK`);
-      onPositionClosed?.();
+      onPositionClosed?.(realized);
       await load();
     } catch (err: any) {
       toast.error(err.message || "Close failed");

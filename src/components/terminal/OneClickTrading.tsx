@@ -10,12 +10,15 @@ interface OneClickTradingProps {
   symbol: string;
   btkBalance: number;
   onTradeExecuted?: () => void;
+  maxLeverage?: number;
+  tradingBlocked?: boolean;
+  blockedReason?: string;
 }
 
 const LOT_PRESETS = [0.01, 0.05, 0.1, 0.5, 1.0];
 const RISK_PRESETS = [1, 2, 3, 5];
 
-export const OneClickTrading = ({ symbol, btkBalance, onTradeExecuted }: OneClickTradingProps) => {
+export const OneClickTrading = ({ symbol, btkBalance, onTradeExecuted, maxLeverage = 200, tradingBlocked = false, blockedReason }: OneClickTradingProps) => {
   const [enabled, setEnabled] = useState(false);
   const [lot, setLot] = useState(0.1);
   const [riskPct, setRiskPct] = useState(2);
@@ -26,6 +29,14 @@ export const OneClickTrading = ({ symbol, btkBalance, onTradeExecuted }: OneClic
   const riskAmount = (btkBalance * riskPct / 100).toFixed(0);
 
   const quickTrade = async (side: "buy" | "sell") => {
+    if (tradingBlocked) {
+      toast.error(blockedReason || "Trading is locked on this account");
+      return;
+    }
+    if (leverage[0] > maxLeverage) {
+      toast.error(`Account leverage cap is ${maxLeverage}x`);
+      return;
+    }
     if (!enabled) {
       toast.error("Enable one-click trading first");
       return;
@@ -92,6 +103,10 @@ export const OneClickTrading = ({ symbol, btkBalance, onTradeExecuted }: OneClic
         </button>
       </div>
 
+      {tradingBlocked && (
+        <p className="text-[9px] font-bold tracking-wider text-destructive">{blockedReason || "TRADING LOCKED"}</p>
+      )}
+
       {enabled && (
         <>
           {/* Lot presets */}
@@ -145,27 +160,27 @@ export const OneClickTrading = ({ symbol, btkBalance, onTradeExecuted }: OneClic
               <label className="text-[9px] text-muted-foreground/60 font-semibold tracking-wider">LEVERAGE</label>
               <span className="text-[9px] font-mono text-[hsl(var(--gold))] font-bold">{leverage[0]}x</span>
             </div>
-            <Slider value={leverage} onValueChange={setLeverage} min={1} max={200} step={1} className="py-0.5" />
+            <Slider value={leverage} onValueChange={v => setLeverage([Math.min(v[0], maxLeverage)])} min={1} max={maxLeverage} step={1} className="py-0.5" />
           </div>
 
           {/* BUY / SELL */}
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => quickTrade("buy")}
-              disabled={!!executing}
+              disabled={!!executing || tradingBlocked}
               className={cn(
                 "h-12 rounded-xl bg-accent/90 hover:bg-accent text-accent-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--accent)/0.4)] active:scale-[0.96]",
-                executing && "opacity-50 cursor-not-allowed"
+                (executing || tradingBlocked) && "opacity-50 cursor-not-allowed"
               )}
             >
               {executing === "buy" ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "LONG"}
             </button>
             <button
               onClick={() => quickTrade("sell")}
-              disabled={!!executing}
+              disabled={!!executing || tradingBlocked}
               className={cn(
                 "h-12 rounded-xl bg-destructive/90 hover:bg-destructive text-destructive-foreground font-bold text-sm transition-all hover:shadow-[0_0_20px_hsl(var(--destructive)/0.4)] active:scale-[0.96]",
-                executing && "opacity-50 cursor-not-allowed"
+                (executing || tradingBlocked) && "opacity-50 cursor-not-allowed"
               )}
             >
               {executing === "sell" ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "SHORT"}
