@@ -437,6 +437,30 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          email_enabled: boolean
+          in_app_enabled: boolean
+          risk_alerts_enabled: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          email_enabled?: boolean
+          in_app_enabled?: boolean
+          risk_alerts_enabled?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          email_enabled?: boolean
+          in_app_enabled?: boolean
+          risk_alerts_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_methods: {
         Row: {
           available_regions: string[]
@@ -1027,6 +1051,42 @@ export type Database = {
           },
         ]
       }
+      user_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          message: string
+          metadata: Json
+          read_at: string | null
+          severity: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          message: string
+          metadata?: Json
+          read_at?: string | null
+          severity?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          message?: string
+          metadata?: Json
+          read_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1224,7 +1284,7 @@ export type Database = {
     }
     Functions: {
       apply_trade_result: {
-        Args: { p_pnl: number; p_user_id: string }
+        Args: { p_pnl: number; p_request_id?: string; p_user_id: string }
         Returns: Json
       }
       award_xp: {
@@ -1246,6 +1306,17 @@ export type Database = {
       complete_mission: {
         Args: { p_mission_id: string; p_user_id: string }
         Returns: Json
+      }
+      create_risk_notification: {
+        Args: {
+          p_kind: string
+          p_message: string
+          p_metadata?: Json
+          p_severity?: string
+          p_title: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       get_contest_leaderboard: {
         Args: { p_since?: string }
@@ -1276,12 +1347,13 @@ export type Database = {
           p_max_leverage?: number
           p_profit_split_pct?: number
           p_profit_target_pct?: number
+          p_request_id?: string
           p_user_id: string
         }
         Returns: Json
       }
       request_account_payout: {
-        Args: { p_account_id: string; p_user_id: string }
+        Args: { p_account_id: string; p_request_id?: string; p_user_id: string }
         Returns: Json
       }
       update_wallet_balance: {
