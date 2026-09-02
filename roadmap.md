@@ -1,0 +1,4 @@
+- [ ] Add trading calendar with daily realized P&L and no-trade days
+- [ ] Add in-app risk notification center and threshold/block/cashout alerts
+- [ ] Add lock lifecycle audit events and filterable audit UI
+- [ ] Validate build, tests, and preview behavior
